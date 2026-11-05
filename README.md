@@ -88,21 +88,16 @@ Sin esto, los comandos de GIF (`/hug`, `/kiss`, `/spin`…) devuelven error aunq
 
 ## Actualizar el bot (migraciones)
 
-Sequelize crea las tablas que faltan, pero **no altera las que ya existen** (por diseño, para no tocar datos reales). Por eso, si venís de una versión anterior y hay columnas nuevas, corré esto **una vez** antes de arrancar:
+Sequelize crea las tablas que faltan, pero **no altera las que ya existen** (por diseño, para no tocar datos reales). Desde la v2.2.0 el bot **aplica la migración aditiva automáticamente al arrancar** (ver `src/lib/autoMigrate.js`): detecta las columnas que los modelos declaran y la base no tiene, y solo las agrega. Es idempotente y nunca borra ni modifica datos (si algo falla, el bot arranca igual y lo registra).
+
+Para aplicarla a mano o ver qué haría sin tocar nada:
 
 ```bash
-npm run db:migrate
+npm run db:migrate              # aplica (idempotente)
+npm run db:migrate -- --dry-run # solo muestra
 ```
 
-El script compara los modelos con la base real y agrega solo las columnas que faltan. Es idempotente: correrlo de nuevo no hace nada.
-
-Para ver qué haría sin tocar nada:
-
-```bash
-npm run db:migrate -- --dry-run
-```
-
-> **v2.2.0:** agrega las columnas `automod_configs.linkAllowlist`, `escalationAction` y `escalationThreshold`. Las tablas `honeypot_configs` y `antinuke_configs` se crean solas al arrancar. Corré `npm run db:migrate` antes de levantar este release.
+> **v2.2.0:** agrega las columnas `automod_configs.linkAllowlist`, `escalationAction` y `escalationThreshold`. Las tablas `honeypot_configs` y `antinuke_configs` se crean solas al arrancar.
 
 ---
 

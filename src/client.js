@@ -89,6 +89,14 @@ async function bootstrap() {
     try {
         await dbReady;
         console.log('[boot] Base de datos lista.');
+        // Migración aditiva automática: agrega columnas que los modelos
+        // declaran y la base todavía no tiene. Idempotente y solo suma; si
+        // falla, el bot sigue arrancando (las columnas nuevas siguen pendientes).
+        try {
+            await require('./lib/autoMigrate').runColumnMigrations();
+        } catch (migErr) {
+            console.error('[boot] La auto-migración falló (el bot sigue arrancando):', migErr.message);
+        }
     } catch (err) {
         console.error('[boot] No se pudo inicializar la base de datos, abortando:', err);
         process.exit(1);

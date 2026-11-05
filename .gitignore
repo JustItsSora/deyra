@@ -1,0 +1,45 @@
+# Secretos: nunca subir esto.
+.env
+.env.local
+*.env
+!.env.example
+
+# Dependencias (se re-instalan con npm install)
+node_modules/
+.npm/
+
+# Base de datos: es local, se regenera sola en una instalación nueva.
+# Si tenés datos que te importan, copiala antes de reinstalar.
+data/*.sqlite
+data/*.sqlite-journal
+data/*.sqlite-wal
+data/*.sqlite-shm
+
+# Cache de los emojis subidos. Escribirse solo; si falta, el bot usa emojis
+# unicode de reemplazo hasta que corras `npm run emojis:upload`.
+src/data/emojiCache.json
+
+# Hash del registro de slash commands. Es un cache: que se borre solo es
+# inofensivo (el bot re-registra los comandos una vez más).
+.commandHash
+
+# Logs y basura del editor
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Copia del bot de música viejo, solo de referencia durante la fusión.
+# No es parte del bot: se puede borrar sin romper nada.
+_old_eleven/
+deyra-v1.1.0.zip
+eleven-main.zip
+
+# Dashboard (Next.js)
+.next/
+dashboard/.next/
+*.tsbuildinfo
+dashboard/next-env.d.ts

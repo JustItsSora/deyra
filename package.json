@@ -1,0 +1,55 @@
+{
+  "name": "deyra",
+  "version": "2.2.0",
+  "description": "Deyra — bot todo-en-uno para Discord: moderación, tickets, automod, economía, niveles, diversión, utilidad, música con filtros, biblioteca personal, 24/7 y más.",
+  "main": "src/client.js",
+  "scripts": {
+    "start": "node src/client.js",
+    "dev": "nodemon src/client.js",
+    "emojis:upload": "node scripts/uploadEmojis.js",
+    "deploy:commands": "node scripts/deployCommands.js",
+    "count:commands": "node scripts/countCommands.js",
+    "db:migrate": "node scripts/dbAddColumns.js",
+    "gif:generate": "node scripts/generateGifCommands.js",
+    "characters:generate": "node scripts/generateCharacterCommands.js",
+    "verify:ui": "node scripts/verifyUi.js",
+    "verify:panels": "node scripts/verifyPanels.js",
+    "verify:providers": "node scripts/verifyProviders.js",
+    "verify": "npm run verify:ui && npm run verify:panels && npm run verify:ai && npm run verify:commands && npm run verify:slash && npm run verify:docs",
+    "verify:all": "npm run verify && npm run verify:providers",
+    "verify:slash": "node scripts/verifySlashSelection.js",
+    "verify:commands": "node scripts/verifyCommands.js",
+    "preview": "node scripts/renderPreview.js",
+    "dashboard:dev": "npm --prefix dashboard run dev",
+    "dashboard:build": "npm --prefix dashboard run build",
+    "preview:theme": "node scripts/renderPreview.js --theme",
+    "preview:palette": "node scripts/renderPreview.js --palette",
+    "verify:docs": "node scripts/verifyDocs.js",
+    "verify:ai": "node scripts/verifyAi.js",
+    "test:ai": "node scripts/testAiLive.js"
+  },
+  "author": "Ryu",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "sequelize": "^6.37.5",
+    "sqlite3": "^5.1.7",
+    "dotenv": "^16.4.5",
+    "node-cron": "^3.0.3",
+    "ms": "^2.1.3",
+    "kazagumo": "^3.4.3",
+    "kazagumo-spotify": "^2.1.1",
+    "shoukaku": "^4.3.0",
+    "axios": "^1.11.0",
+    "@napi-rs/canvas": "^0.1.100",
+    "canvafy": "^7.2.1",
+    "rss-parser": "^3.13.0",
+    "wikipedia": "^2.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

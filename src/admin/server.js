@@ -1,0 +1,553 @@
+// src/admin/server.js
+// API admin embebida en el bot para el dashboard web (Next.js en Vercel).
+//
+// Por qué existe: Vercel es serverless y efímero; la "verdad" de la
+// configuración de un servidor vive en la DB SQLite de este proceso. El panel
+// web no puede leer/escribir el archivo por su cuenta, así que el bot expone
+// esta API y el panel habla con ella vía HTTPS.
+//
+// Seguridad (fail-closed):
+//   · sin ADMIN_API_KEY el módulo ni siquiera abre el puerto
+//   · Bearer token con comparación en tiempo constante
+//   · CORS restringido a DASHBOARD_ORIGIN (si no se define, sin CORS)
+//   · rate limit por IP (60 req / 5 min)
+//   · body JSON con tope de 64 KB
+//   · whitelist estricta de campos por endpoint; claves desconocidas → 400
+//   · el bot nunca actúa fuera de los guilds donde está presente
+//
+// Variables de entorno: ADMIN_API_KEY, ADMIN_PORT (SERVER_PORT tiene
+// prioridad en bot-hosting.net), DASHBOARD_ORIGIN.
+
+const { ChannelType } = require('discord.js');
+
+const http = require('http');
+const crypto = require('crypto');
+const config = require('../config');
+const { GuildConfig, AutomodConfig, HoneypotConfig, AntiNukeConfig, WelcomeConfig, Warn } = require('../data/models');
+
+const MAX_BODY = 64 * 1024;
+const RATE_LIMIT = 60;
+const RATE_WINDOW_MS = 5 * 60 * 1000;
+
+const rateBuckets = new Map(); // ip -> { count, resetAt }
+
+function timingSafeEqualString(a, b) {
+    const ba = Buffer.from(String(a));
+    const bb = Buffer.from(String(b));
+    if (ba.length !== bb.length) return false;
+    return crypto.timingSafeEqual(ba, bb);
+}
+
+function clientIp(req) {
+    const fwd = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+    return fwd || req.socket.remoteAddress || 'unknown';
+}
+
+function rateLimited(ip) {
+    const now = Date.now();
+    let bucket = rateBuckets.get(ip);
+    if (!bucket || now > bucket.resetAt) {
+        bucket = { count: 0, resetAt: now + RATE_WINDOW_MS };
+        rateBuckets.set(ip, bucket);
+    }
+    bucket.count += 1;
+    if (rateBuckets.size > 5000) {
+        for (const [key, b] of rateBuckets) {
+            if (now > b.resetAt) rateBuckets.delete(key);
+        }
+    }
+    return bucket.count > RATE_LIMIT;
+}
+
+function sendJson(res, status, body, origin) {
+    const payload = JSON.stringify(body);
+    const headers = {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Length': Buffer.byteLength(payload),
+        'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff',
+    };
+    if (origin) {
+        headers['Access-Control-Allow-Origin'] = origin;
+        headers['Vary'] = 'Origin';
+    }
+    res.writeHead(status, headers);
+    res.end(payload);
+}
+
+function jsonError(res, status, code, message, origin) {
+    sendJson(res, status, { error: code, message }, origin);
+}
+
+function readBody(req) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        let size = 0;
+        req.on('data', chunk => {
+            size += chunk.length;
+            if (size > MAX_BODY) {
+                reject(Object.assign(new Error('body too large'), { code: 'BODY_TOO_LARGE' }));
+                req.destroy();
+                return;
+            }
+            chunks.push(chunk);
+        });
+        req.on('end', () => {
+            if (chunks.length === 0) return resolve({});
+            try {
+                resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+            } catch {
+                reject(Object.assign(new Error('invalid JSON'), { code: 'BAD_JSON' }));
+            }
+        });
+        req.on('error', reject);
+    });
+}
+
+// ── Validadores ───────────────────────────────────────────────────────────
+
+const isSnowflake = (v) => typeof v === 'string' && /^\d{17,20}$/.test(v);
+const boolRule = (v) => (typeof v === 'boolean' ? v : undefined);
+const asInt = (v, min, max) => {
+    const n = Number(v);
+    if (!Number.isFinite(n) || !Number.isInteger(n) || n < min || n > max) return null;
+    return n;
+};
+const asString = (v, maxLen) => (typeof v === 'string' ? v.trim().slice(0, maxLen) : null);
+const asSnowflakeArray = (v, max = 200) => {
+    if (!Array.isArray(v)) return null;
+    const out = [];
+    for (const item of v) {
+        if (!isSnowflake(item)) return null;
+        if (!out.includes(item)) out.push(item);
+        if (out.length > max) return null;
+    }
+    return out;
+};
+const asStringArray = (v, maxItems = 200, maxLen = 64) => {
+    if (!Array.isArray(v)) return null;
+    const out = [];
+    for (const item of v) {
+        const s = asString(item, maxLen);
+        if (!s) return null;
+        if (!out.includes(s)) out.push(s);
+        if (out.length > maxItems) return null;
+    }
+    return out;
+};
+const asDomainArray = (v, maxItems = 200) => {
+    if (!Array.isArray(v)) return null;
+    const out = [];
+    for (const item of v) {
+        const s = String(item || '').trim().toLowerCase().slice(0, 253);
+        if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(s)) return null;
+        if (!out.includes(s)) out.push(s);
+        if (out.length > maxItems) return null;
+    }
+    return out;
+};
+
+/** Aplica `patch` validado sobre `model instance` solo con las claves permitidas. */
+function applyPatch(instance, patch, rules) {
+    const applied = [];
+    for (const [key, rule] of Object.entries(rules)) {
+        if (!(key in patch)) continue;
+        const value = rule(patch[key]);
+        if (value === undefined) return { error: key };
+        instance[key] = value;
+        applied.push(key);
+    }
+    return { applied };
+}
+
+const idOrNull = (v) => (v === null || v === undefined || v === '' ? null : (isSnowflake(v) ? v : undefined));
+const enumOf = (...allowed) => (v) => (allowed.includes(v) ? v : undefined);
+
+// ── Serializadores ────────────────────────────────────────────────────────
+
+function guildSummary(guild) {
+    return {
+        id: guild.id,
+        name: guild.name,
+        icon: guild.icon,
+        memberCount: guild.memberCount ?? null,
+        ownerId: guild.ownerId ?? null,
+    };
+}
+
+function automodJson(cfg) {
+    return {
+        enabled: cfg?.enabled ?? false,
+        antiInvite: cfg?.antiInvite ?? false,
+        antiLink: cfg?.antiLink ?? false,
+        antiSpam: cfg?.antiSpam ?? false,
+        antiMention: cfg?.antiMention ?? false,
+        antiCaps: cfg?.antiCaps ?? false,
+        antiBadWords: cfg?.antiBadWords ?? false,
+        aiModeration: cfg?.aiModeration ?? false,
+        maxMentions: cfg?.maxMentions ?? 5,
+        spamMessageCount: cfg?.spamMessageCount ?? 5,
+        spamIntervalSeconds: cfg?.spamIntervalSeconds ?? 5,
+        capsPercentThreshold: cfg?.capsPercentThreshold ?? 70,
+        punishmentAction: cfg?.punishmentAction ?? 'delete',
+        escalationAction: cfg?.escalationAction ?? 'off',
+        escalationThreshold: cfg?.escalationThreshold ?? 5,
+        badWordsList: JSON.parse(cfg?.badWordsList || '[]'),
+        whitelistedChannels: JSON.parse(cfg?.whitelistedChannels || '[]'),
+        whitelistedRoles: JSON.parse(cfg?.whitelistedRoles || '[]'),
+        linkAllowlist: JSON.parse(cfg?.linkAllowlist || '[]'),
+        logChannelId: cfg?.logChannelId ?? null,
+    };
+}
+
+function honeypotJson(cfg) {
+    return {
+        enabled: cfg?.enabled ?? false,
+        channelId: cfg?.channelId ?? null,
+        action: cfg?.action ?? 'kick',
+        timeoutMinutes: cfg?.timeoutMinutes ?? 1440,
+    };
+}
+
+function antinukeJson(cfg) {
+    return {
+        enabled: cfg?.enabled ?? false,
+        action: cfg?.action ?? 'ban',
+        threshold: cfg?.threshold ?? 3,
+        windowMinutes: cfg?.windowMinutes ?? 10,
+        whitelistedUsers: JSON.parse(cfg?.whitelistedUsers || '[]'),
+        whitelistedRoles: JSON.parse(cfg?.whitelistedRoles || '[]'),
+    };
+}
+
+function welcomeJson(cfg) {
+    return {
+        welcomeEnabled: cfg?.welcomeEnabled ?? false,
+        welcomeChannelId: cfg?.welcomeChannelId ?? null,
+        welcomeMessage: cfg?.welcomeMessage ?? '¡Bienvenido/a {user} a {server}! Ahora somos {membercount} miembros.',
+        welcomeCardEnabled: cfg?.welcomeCardEnabled ?? true,
+        leaveEnabled: cfg?.leaveEnabled ?? false,
+        leaveChannelId: cfg?.leaveChannelId ?? null,
+        leaveMessage: cfg?.leaveMessage ?? '{user} ha dejado el servidor. Éramos {membercount} miembros.',
+    };
+}
+
+function guildJson(cfg) {
+    return {
+        prefix: cfg?.prefix ?? null,
+        language: cfg?.language ?? 'es',
+        nsfw: cfg?.nsfw ?? false,
+        modLogChannelId: cfg?.modLogChannelId ?? null,
+        memberLogChannelId: cfg?.memberLogChannelId ?? null,
+        messageLogChannelId: cfg?.messageLogChannelId ?? null,
+        muteRoleId: cfg?.muteRoleId ?? null,
+        suggestionsChannelId: cfg?.suggestionsChannelId ?? null,
+        confessionsChannelId: cfg?.confessionsChannelId ?? null,
+        birthdayChannelId: cfg?.birthdayChannelId ?? null,
+    };
+}
+
+// ── Aplicación de patches ─────────────────────────────────────────────────
+
+async function patchAutomod(guildId, patch) {
+    const allowed = ['enabled','antiInvite','antiLink','antiSpam','antiMention','antiCaps','antiBadWords','aiModeration','maxMentions','spamMessageCount','spamIntervalSeconds','capsPercentThreshold','punishmentAction','escalationAction','escalationThreshold','badWordsList','whitelistedChannels','whitelistedRoles','linkAllowlist','logChannelId'];
+    for (const key of Object.keys(patch)) {
+        if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
+    }
+    const [cfg] = await AutomodConfig.findOrCreate({ where: { guildId }, defaults: { guildId } });
+
+    const rules = {
+        enabled: boolRule, antiInvite: boolRule, antiLink: boolRule, antiSpam: boolRule,
+        antiMention: boolRule, antiCaps: boolRule, antiBadWords: boolRule, aiModeration: boolRule,
+        maxMentions: v => asInt(v, 1, 50) ?? undefined,
+        spamMessageCount: v => asInt(v, 2, 30) ?? undefined,
+        spamIntervalSeconds: v => asInt(v, 1, 120) ?? undefined,
+        capsPercentThreshold: v => asInt(v, 1, 100) ?? undefined,
+        escalationThreshold: v => asInt(v, 1, 100) ?? undefined,
+        punishmentAction: enumOf('delete', 'warn', 'mute', 'kick', 'ban'),
+        escalationAction: enumOf('off', 'timeout', 'kick', 'ban'),
+        badWordsList: v => { const a = asStringArray(v, 500, 64); return a ? JSON.stringify(a.map(w => w.toLowerCase())) : undefined; },
+        whitelistedChannels: v => { const a = asSnowflakeArray(v); return a ? JSON.stringify(a) : undefined; },
+        whitelistedRoles: v => { const a = asSnowflakeArray(v); return a ? JSON.stringify(a) : undefined; },
+        linkAllowlist: v => { const a = asDomainArray(v); return a ? JSON.stringify(a) : undefined; },
+        logChannelId: idOrNull,
+    };
+
+    const result = applyPatch(cfg, patch, rules);
+    if (result.error) return { error: `invalid value for: ${result.error}` };
+    await cfg.save();
+    return { data: automodJson(cfg) };
+}
+
+async function patchHoneypot(guild, patch) {
+    const allowed = ['enabled', 'channelId', 'action', 'timeoutMinutes'];
+    for (const key of Object.keys(patch)) {
+        if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
+    }
+    const [cfg] = await HoneypotConfig.findOrCreate({ where: { guildId: guild.id }, defaults: { guildId: guild.id } });
+
+    const rules = {
+        enabled: boolRule,
+        action: enumOf('timeout', 'kick', 'ban'),
+        timeoutMinutes: v => asInt(v, 1, 40320) ?? undefined,
+        channelId: v => {
+            if (v === null) return null;
+            if (!isSnowflake(v)) return undefined;
+            const channel = guild.channels.cache.get(v);
+            if (!channel || !(channel.isTextBased?.())) return undefined;
+            return v;
+        },
+    };
+
+    const result = applyPatch(cfg, patch, rules);
+    if (result.error) return { error: `invalid value for: ${result.error}` };
+    if (cfg.enabled && !cfg.channelId) return { error: 'cannot enable honeypot without a channelId' };
+    await cfg.save();
+
+    require('../gateway/honeypot/honeypotEvents').invalidateCache(guild.id);
+    return { data: honeypotJson(cfg) };
+}
+
+async function patchAntiNuke(guildId, patch) {
+    const allowed = ['enabled', 'action', 'threshold', 'windowMinutes', 'whitelistedUsers', 'whitelistedRoles'];
+    for (const key of Object.keys(patch)) {
+        if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
+    }
+    const [cfg] = await AntiNukeConfig.findOrCreate({ where: { guildId }, defaults: { guildId } });
+
+    const rules = {
+        enabled: boolRule,
+        action: enumOf('ban', 'derank', 'log'),
+        threshold: v => asInt(v, 1, 20) ?? undefined,
+        windowMinutes: v => asInt(v, 1, 120) ?? undefined,
+        whitelistedUsers: v => { const a = asSnowflakeArray(v); return a ? JSON.stringify(a) : undefined; },
+        whitelistedRoles: v => { const a = asSnowflakeArray(v); return a ? JSON.stringify(a) : undefined; },
+    };
+
+    const result = applyPatch(cfg, patch, rules);
+    if (result.error) return { error: `invalid value for: ${result.error}` };
+    await cfg.save();
+
+    require('../gateway/antinuke/antinukeEvents').invalidateCache(guildId);
+    return { data: antinukeJson(cfg) };
+}
+
+async function patchWelcome(guild, patch) {
+    const allowed = ['welcomeEnabled', 'welcomeChannelId', 'welcomeMessage', 'welcomeCardEnabled', 'leaveEnabled', 'leaveChannelId', 'leaveMessage'];
+    for (const key of Object.keys(patch)) {
+        if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
+    }
+    const [cfg] = await WelcomeConfig.findOrCreate({ where: { guildId: guild.id }, defaults: { guildId: guild.id } });
+
+    const channelRule = (v) => {
+        if (v === null) return null;
+        if (!isSnowflake(v)) return undefined;
+        const channel = guild.channels.cache.get(v);
+        return channel ? v : undefined;
+    };
+    const rules = {
+        welcomeEnabled: boolRule,
+        welcomeCardEnabled: boolRule,
+        leaveEnabled: boolRule,
+        welcomeChannelId: channelRule,
+        leaveChannelId: channelRule,
+        welcomeMessage: v => (typeof v === 'string' && v.trim().length > 0 ? v.trim().slice(0, 500) : undefined),
+        leaveMessage: v => (typeof v === 'string' && v.trim().length > 0 ? v.trim().slice(0, 500) : undefined),
+    };
+
+    const result = applyPatch(cfg, patch, rules);
+    if (result.error) return { error: `invalid value for: ${result.error}` };
+    await cfg.save();
+    return { data: welcomeJson(cfg) };
+}
+
+async function patchGuild(guildId, patch) {
+    const allowed = ['prefix', 'language', 'modLogChannelId', 'memberLogChannelId', 'messageLogChannelId', 'muteRoleId'];
+    for (const key of Object.keys(patch)) {
+        if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
+    }
+    const [cfg] = await GuildConfig.findOrCreate({ where: { guildId }, defaults: { guildId } });
+
+    const rules = {
+        prefix: v => (v === null ? null : (typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 5 ? v.trim() : undefined)),
+        language: enumOf('es', 'en'),
+        modLogChannelId: idOrNull, memberLogChannelId: idOrNull, messageLogChannelId: idOrNull, muteRoleId: idOrNull,
+    };
+
+    const result = applyPatch(cfg, patch, rules);
+    if (result.error) return { error: `invalid value for: ${result.error}` };
+    await cfg.save();
+    return { data: guildJson(cfg) };
+}
+
+// ── Router ────────────────────────────────────────────────────────────────
+
+function channelList(guild) {
+    return guild.channels.cache
+        .filter(c => c.isTextBased?.() && c.type !== ChannelType.GuildCategory) // texto y anuncios, sin categorías
+        .map(c => ({ id: c.id, name: c.name, type: c.type, parentId: c.parentId ?? null }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function roleList(guild) {
+    return guild.roles.cache
+        .map(r => ({ id: r.id, name: r.name, color: r.hexColor, position: r.position, managed: r.managed, isEveryone: r.id === guild.id }))
+        .sort((a, b) => b.position - a.position);
+}
+
+async function resolveGuild(client, id) {
+    if (!isSnowflake(id)) return null;
+    return client.guilds.cache.get(id) || client.guilds.fetch(id).catch(() => null);
+}
+
+function startAdminServer(client) {
+    if (!config.ADMIN_API_KEY) {
+        console.log('[admin] ADMIN_API_KEY no definida; la API del dashboard no arranca.');
+        return null;
+    }
+
+    const origin = config.DASHBOARD_ORIGIN || null;
+
+    const server = http.createServer(async (req, res) => {
+        const ip = clientIp(req);
+        const url = new URL(req.url || '/', 'http://localhost');
+        const path = url.pathname.replace(/\/+$/, '') || '/';
+        const method = (req.method || 'GET').toUpperCase();
+
+        // CORS preflight
+        if (method === 'OPTIONS') {
+            const headers = { 'Access-Control-Allow-Methods': 'GET, PATCH, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Max-Age': '600' };
+            if (origin) headers['Access-Control-Allow-Origin'] = origin;
+            res.writeHead(204, headers);
+            return res.end();
+        }
+
+        if (rateLimited(ip)) return jsonError(res, 429, 'rate_limited', 'Demasiadas peticiones.', origin);
+
+        // Auth
+        const auth = req.headers.authorization || '';
+        const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+        if (!token || !timingSafeEqualString(token, config.ADMIN_API_KEY)) {
+            return jsonError(res, 401, 'unauthorized', 'Credenciales inválidas.', origin);
+        }
+
+        if (!path.startsWith('/api/v1')) return jsonError(res, 404, 'not_found', 'Endpoint desconocido.', origin);
+        const route = path.slice('/api/v1'.length) || '/';
+
+        try {
+            // ── /health ──
+            if (route === '/health' && method === 'GET') {
+                return sendJson(res, 200, {
+                    ok: true,
+                    uptimeSeconds: Math.floor(process.uptime()),
+                    guilds: client.guilds.cache.size,
+                    version: require('../../package.json').version,
+                }, origin);
+            }
+
+            // ── /guilds ──
+            if (route === '/guilds' && method === 'GET') {
+                const guilds = [...client.guilds.cache.values()].map(guildSummary);
+                return sendJson(res, 200, { guilds }, origin);
+            }
+
+            const guildMatch = route.match(/^\/guilds\/(\d{17,20})(\/.*)?$/);
+            if (!guildMatch) return jsonError(res, 404, 'not_found', 'Ruta desconocida.', origin);
+
+            const [, guildId, subRaw] = guildMatch;
+            const sub = subRaw || '/';
+            const guild = await resolveGuild(client, guildId);
+            if (!guild) return jsonError(res, 404, 'guild_not_found', 'El bot no está en ese servidor.', origin);
+
+            // ── /guilds/:id/overview ──
+            if (sub === '/overview' && method === 'GET') {
+                const { Op } = require('sequelize');
+                const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                const warnsLast30d = await Warn.count({ where: { guildId, createdAt: { [Op.gte]: since } } }).catch(() => null);
+                const [automod, honeypot, antinuke] = await Promise.all([
+                    AutomodConfig.findOne({ where: { guildId } }).catch(() => null),
+                    HoneypotConfig.findOne({ where: { guildId } }).catch(() => null),
+                    AntiNukeConfig.findOne({ where: { guildId } }).catch(() => null),
+                ]);
+                return sendJson(res, 200, {
+                    ...guildSummary(guild),
+                    channelCount: guild.channels.cache.size,
+                    roleCount: guild.roles.cache.size,
+                    boostTier: guild.premiumTier ?? 0,
+                    warnsLast30d,
+                    security: {
+                        automod: Boolean(automod?.enabled),
+                        honeypot: Boolean(honeypot?.enabled),
+                        antinuke: Boolean(antinuke?.enabled),
+                    },
+                }, origin);
+            }
+
+            // ── /guilds/:id/config (GET agregado) ──
+            if (sub === '/config' && method === 'GET') {
+                const [guildCfg, automod, honeypot, antinuke, welcome] = await Promise.all([
+                    GuildConfig.findOne({ where: { guildId } }).catch(() => null),
+                    AutomodConfig.findOne({ where: { guildId } }).catch(() => null),
+                    HoneypotConfig.findOne({ where: { guildId } }).catch(() => null),
+                    AntiNukeConfig.findOne({ where: { guildId } }).catch(() => null),
+                    WelcomeConfig.findOne({ where: { guildId } }).catch(() => null),
+                ]);
+                return sendJson(res, 200, {
+                    guild: guildJson(guildCfg),
+                    automod: automodJson(automod),
+                    honeypot: honeypotJson(honeypot),
+                    antinuke: antinukeJson(antinuke),
+                    welcome: welcomeJson(welcome),
+                }, origin);
+            }
+
+            // ── /guilds/:id/channels y /roles ──
+            if (sub === '/channels' && method === 'GET') {
+                return sendJson(res, 200, { channels: channelList(guild) }, origin);
+            }
+            if (sub === '/roles' && method === 'GET') {
+                return sendJson(res, 200, { roles: roleList(guild) }, origin);
+            }
+
+            // ── PATCHes ──
+            if (method === 'PATCH' && ['/guild', '/automod', '/honeypot', '/antinuke', '/welcome'].includes(sub)) {
+                let patch;
+                try {
+                    patch = await readBody(req);
+                } catch (err) {
+                    return jsonError(res, err.code === 'BODY_TOO_LARGE' ? 413 : 400, err.code === 'BODY_TOO_LARGE' ? 'body_too_large' : 'bad_json', err.message, origin);
+                }
+                if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+                    return jsonError(res, 400, 'bad_body', 'El cuerpo debe ser un objeto JSON.', origin);
+                }
+
+                let result;
+                if (sub === '/guild') result = await patchGuild(guildId, patch);
+                else if (sub === '/automod') result = await patchAutomod(guildId, patch);
+                else if (sub === '/honeypot') result = await patchHoneypot(guild, patch);
+                else if (sub === '/antinuke') result = await patchAntiNuke(guildId, patch);
+                else if (sub === '/welcome') result = await patchWelcome(guild, patch);
+
+                if (result?.error) return jsonError(res, 400, 'invalid_patch', result.error, origin);
+                return sendJson(res, 200, result.data, origin);
+            }
+
+            return jsonError(res, 404, 'not_found', 'Ruta desconocida.', origin);
+        } catch (err) {
+            console.error('[admin] Error en', method, route, '-', err);
+            return jsonError(res, 500, 'internal', 'Error interno del servidor admin.', origin);
+        }
+    });
+
+    server.on('error', (err) => {
+        console.error(`[admin] No se pudo abrir el puerto ${config.ADMIN_PORT}:`, err.message);
+    });
+
+    server.listen(config.ADMIN_PORT, '0.0.0.0', () => {
+        console.log(`[admin] API del dashboard escuchando en 0.0.0.0:${config.ADMIN_PORT}`);
+    });
+
+    return server;
+}
+
+module.exports = { startAdminServer };

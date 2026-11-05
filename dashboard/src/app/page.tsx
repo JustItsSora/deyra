@@ -22,7 +22,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
     <>
       <header className="land-nav">
         <Link href="/" className="brand" aria-label="Deyra — inicio">
-          <span className="brand-mark" aria-hidden="true">D</span>
+          <img className="brand-logo" src="/logo.png" alt="" width={32} height={32} />
           <span className="brand-word">Deyra</span>
         </Link>
         <nav className="nav-links" aria-label="Secciones">
@@ -219,7 +219,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
       <footer className="land-footer">
         <div className="inner">
           <div className="brand" style={{ textDecoration: 'none' }}>
-            <span className="brand-mark" aria-hidden="true" style={{ width: 26, height: 26, fontSize: 15 }}>D</span>
+            <img className="brand-logo" src="/logo.png" alt="" width={26} height={26} style={{ borderRadius: 7 }} />
             <span style={{ color: 'var(--muted)', fontSize: 13 }}>Deyra · Todo en uno para tu servidor</span>
           </div>
           <a className="btn btn-ghost btn-sm" href={ctaHref}>Añadir a Discord</a>

@@ -58,7 +58,7 @@ export default function Sidebar({ guilds, currentGuildId, userName }: SidebarPro
     <aside className="sidebar">
       <div className="side-top">
         <Link href="/dashboard" className="brand" aria-label="Deyra — panel principal">
-          <span className="brand-mark" aria-hidden="true">D</span>
+          <img className="brand-logo" src="/logo.png" alt="" width={32} height={32} />
           <span className="brand-word">Deyra</span>
         </Link>
         <a href="/api/auth/logout" className="side-link" style={{ padding: 8 }} aria-label="Cerrar sesión" title="Cerrar sesión">

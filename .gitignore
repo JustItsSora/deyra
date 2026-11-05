@@ -43,3 +43,6 @@ eleven-main.zip
 dashboard/.next/
 *.tsbuildinfo
 dashboard/next-env.d.ts
+
+# Vercel
+.vercel/

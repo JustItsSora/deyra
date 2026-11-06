@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Volume2 } from 'lucide-react';
+import { ArrowRight, Volume2, ShieldCheck, Radar, ShieldAlert, Ticket } from 'lucide-react';
 import { inviteUrl } from '@/lib/discord';
 import SoundToggle from '@/components/SoundToggle';
 
@@ -194,7 +194,31 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
             <p>Añádela y en treinta segundos el orden vuelve a reinar.</p>
             <a className="btn-ink" href={ctaHref}>Añadir a Discord<ArrowRight size={17} aria-hidden="true" /></a>
           </div>
-          <span className="closing-mark" aria-hidden="true">D</span>
+          <div className="closing-aside">
+            <span className="cap">Incluye</span>
+            <ul>
+              <li>
+                <ShieldCheck size={20} aria-hidden="true" />
+                <span className="m">Automod</span>
+                <span className="d">Filtra spam, enlaces y menciones.</span>
+              </li>
+              <li>
+                <Radar size={20} aria-hidden="true" />
+                <span className="m">Honeypot</span>
+                <span className="d">Atrae raids y expulsa intrusos.</span>
+              </li>
+              <li>
+                <ShieldAlert size={20} aria-hidden="true" />
+                <span className="m">Anti-nuke</span>
+                <span className="d">Bloquea acciones masivas.</span>
+              </li>
+              <li>
+                <Ticket size={20} aria-hidden="true" />
+                <span className="m">Tickets</span>
+                <span className="d">Atención en privado para tu gente.</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 

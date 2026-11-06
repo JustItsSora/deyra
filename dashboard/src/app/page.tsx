@@ -1,12 +1,7 @@
 import Link from 'next/link';
-import {
-  Sparkles, ShieldCheck, Radar, Zap, DoorOpen, ScrollText, Settings2,
-  Lock, BadgeCheck, Server, ChevronRight, Users, AlertCircle, Gift, KeyRound,
-} from 'lucide-react';
+import { ArrowRight, Volume2 } from 'lucide-react';
 import { inviteUrl } from '@/lib/discord';
-import HeroStage from '@/components/HeroStage';
 import SoundToggle from '@/components/SoundToggle';
-import CountUp from '@/components/CountUp';
 
 const AUTH_MESSAGES: Record<string, string> = {
   denied: 'Cancelaste el inicio de sesión en Discord. Puedes volver a intentarlo cuando quieras.',
@@ -23,204 +18,192 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <div className="land-top">
-        <header className="land-nav">
-          <Link href="/" className="brand" aria-label="Deyra — inicio">
-            <img className="brand-logo" src="/logo.png" alt="" width={34} height={40} />
-            <span className="brand-word">Deyra</span>
+      <header className="site-nav">
+        <div className="inner">
+          <Link href="/" className="wordmark" aria-label="Deyra, inicio">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="mark" src="/logo.png" alt="" width={34} height={34} />
+            <span className="word">Deyra<small>Guardiana de servidores</small></span>
           </Link>
           <nav className="nav-links" aria-label="Secciones">
-            <a href="#funciones">Funciones</a>
-            <a href="#como-funciona">Cómo funciona</a>
-            <a href="#seguridad">Seguridad</a>
+            <a href="#servicio">El servicio</a>
+            <a href="#panel">El panel</a>
+            <a href="#garantia">Garantía</a>
+            <a href="#preguntas">Preguntas</a>
           </nav>
           <div className="nav-actions">
             <SoundToggle />
             <a className="btn btn-ghost btn-sm" href="/api/auth/login">Iniciar sesión</a>
             <a className="btn btn-primary btn-sm" href={ctaHref}>Añadir a Discord</a>
           </div>
-        </header>
-      </div>
+        </div>
+      </header>
 
       <main>
         {authMessage && (
           <div className="content" style={{ paddingTop: 14, paddingBottom: 0 }}>
             <div className="callout danger" role="alert">
-              <AlertCircle className="icon" aria-hidden="true" />
+              <Volume2 size={16} aria-hidden="true" />
               <span>{authMessage}</span>
             </div>
           </div>
         )}
+
         <section className="hero">
-          <div className="hero-text">
-            <span className="kicker">Panel de control</span>
-            <h1 className="display">Un servidor bajo control, sin memorizar comandos.</h1>
-            <p className="lead">
-              Deyra es el bot todo-en-uno para servidores exigentes: automod avanzado,
-              honeypot, anti-nuke, tickets, niveles y música. Ahora, toda su configuración
-              vive también en este panel: eliges el servidor y ajustas con tu cuenta de
-              Discord.
+          <div>
+            <span className="eyebrow">Guardiana de servidores · 548 comandos</span>
+            <h1>Tu servidor, <em>en orden</em> antes de que arda.</h1>
+            <p className="lede">
+              Deyra modera, filtra y responde mientras tú vives: automod, honeypot,
+              anti-nuke, tickets, niveles y música. Sin memorizar comandos,{' '}
+              <b>sin rituales, sin letra pequeña</b>.
             </p>
-            <div className="hero-ctas">
-              <a className="btn btn-primary" href={ctaHref}>
-                <Sparkles size={17} aria-hidden="true" />
-                Añadir a Discord
-              </a>
-              <a className="btn btn-ghost" href="/api/auth/login">Iniciar sesión</a>
+            <div className="cta-row">
+              <a className="btn btn-primary" href={ctaHref}>Añadir a Discord</a>
+              <a className="btn btn-ghost" href="#servicio">Ver el archivo</a>
             </div>
             <p className="micro">
-              <span><Lock size={14} aria-hidden="true" />OAuth oficial de Discord</span>
-              <span><Gift size={14} aria-hidden="true" />Gratis</span>
-              <span><KeyRound size={14} aria-hidden="true" />Solo administras lo que ya administras</span>
+              <span>Instalación en 30 segundos</span>
+              <span>Sin cuenta</span>
+              <span>Permisos mínimos</span>
             </p>
           </div>
 
-          <HeroStage />
+          <div className="medallion" aria-hidden="true">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/danica.jpg" alt="" fetchPriority="high" />
+            <span className="seal"><span>DEYRA</span></span>
+          </div>
         </section>
 
-        <div className="stats-strip" aria-label="En cifras">
-          <div className="inner">
-            <div className="item"><b><CountUp value={548} duration={1400} /></b><span>comandos híbridos</span></div>
-            <div className="item"><b><CountUp value={31} duration={1400} /></b><span>tablas de datos</span></div>
-            <div className="item"><b><CountUp value={7} duration={1400} /></b><span>protecciones automáticas</span></div>
-            <div className="item"><b>0 €</b><span>para siempre en el panel</span></div>
-          </div>
+        <div className="spec-strip" aria-label="Ficha técnica">
+          <span><b>548</b> comandos híbridos</span>
+          <span><b>31</b> tablas de datos</span>
+          <span><b>7</b> protecciones automáticas</span>
+          <span><b>0 €</b> para siempre</span>
         </div>
 
-        <section className="section" id="funciones">
-          <span className="kicker">Qué configura este panel</span>
-          <h2 className="display">Todo lo que antes memorizabas, ahora lo ves.</h2>
-          <p className="sub">Cada sección del panel escribe en la misma configuración que usan los comandos: lo que actives aquí funciona al instante, sin reinicios ni copiar IDs.</p>
+        <section className="ledger" id="servicio" aria-label="Lo que hace">
+          <span className="eyebrow">El servicio</span>
+          <h2>Lo que hace, sin letra pequeña.</h2>
+          <p className="sub">Seis líneas corresponden a sistemas reales corriendo hoy. Lo que lees es exactamente lo que hace; nada de relleno de marketing.</p>
 
-          <div className="feature-grid">
-            <article className="feature f-lead">
-              <div className="ic"><ShieldCheck size={20} aria-hidden="true" /></div>
-              <h3>Automod que entiende el contexto</h3>
-              <p>Filtro de invites ampliado, enlaces con lista blanca de dominios, spam por frecuencia y por contenido duplicado, menciones que cuentan usuarios, roles y @everyone, mayúsculas, palabras prohibidas con límites de palabra — y escalada automática: 5 infracciones en 30 días y la sanción sube sola.</p>
-            </article>
-            <article className="feature f-std">
-              <div className="ic"><Radar size={20} aria-hidden="true" /></div>
-              <h3>Honeypot</h3>
-              <p>Un canal señuelo donde solo escriben bots de raid. Quien cae, fuera.</p>
-            </article>
-            <article className="feature f-std">
-              <div className="ic"><Zap size={20} aria-hidden="true" /></div>
-              <h3>Anti-nuke</h3>
-              <p>Vigila el audit log: borrados de canales, roles, baneos masivos y webhooks.</p>
-            </article>
-            <article className="feature f-std">
-              <div className="ic"><DoorOpen size={20} aria-hidden="true" /></div>
-              <h3>Bienvenidas</h3>
-              <p>Canal, mensaje con variables y despedida. Tarjetas de bienvenida opcionales.</p>
-            </article>
-            <article className="feature f-std">
-              <div className="ic"><ScrollText size={20} aria-hidden="true" /></div>
-              <h3>Registros</h3>
-              <p>Canales de log para moderación, entradas/salidas y mensajes borrados o editados.</p>
-            </article>
-            <article className="feature f-wide">
-              <div className="ic"><Settings2 size={20} aria-hidden="true" /></div>
-              <h3>Ajustes generales</h3>
-              <p>Prefijo, idioma y política de contenido del servidor, con validación en vivo.</p>
-            </article>
+          <div className="ledger-rows">
+            <a className="row" href="#panel">
+              <span className="num">01</span>
+              <span><span className="name">Moderación con memoria</span><span className="line">Ban, kick, warn, lockdown y purge con registro en el canal que tú elijas.</span></span>
+              <span className="cmd">/ban</span>
+            </a>
+            <a className="row" href="#panel">
+              <span className="num">02</span>
+              <span><span className="name">Automod que entiende el contexto</span><span className="line">Invites, enlaces con lista blanca, spam por frecuencia o duplicado, menciones con roles y @everyone, mayúsculas y palabras con límites de palabra.</span></span>
+              <span className="cmd">/automod</span>
+            </a>
+            <a className="row" href="#panel">
+              <span className="num">03</span>
+              <span><span className="name">Honeypot con trampa giratoria</span><span className="line">Un canal señuelo con el nombre cambiando solo: el bot de raid que escribe ahí no vuelve.</span></span>
+              <span className="cmd">/honeypot</span>
+            </a>
+            <a className="row" href="#panel">
+              <span className="num">04</span>
+              <span><span className="name">Anti-nuke sobre el audit log</span><span className="line">Borrados masivos de canales, roles o baneos: detecta la ráfaga y la corta antes de que arrase.</span></span>
+              <span className="cmd">/antinuke</span>
+            </a>
+            <a className="row" href="#panel">
+              <span className="num">05</span>
+              <span><span className="name">Tickets de verdad</span><span className="line">Panel con categorías, equipo de soporte y cierre con transcripción al archivar.</span></span>
+              <span className="cmd">/ticket</span>
+            </a>
+            <a className="row" href="#panel">
+              <span className="num">06</span>
+              <span><span className="name">Niveles que sirven</span><span className="line">XP por participar y recompensas por rol, sin grind falso ni ranking inflado.</span></span>
+              <span className="cmd">/level</span>
+            </a>
           </div>
         </section>
 
-        <section className="section" id="como-funciona" style={{ paddingTop: 8 }}>
-          <span className="kicker">Cómo funciona</span>
-          <h2 className="display">Tres pasos, cero terminal.</h2>
-
-          <div className="steps">
-            <div className="step">
-              <div className="num">01</div>
-              <h3>Invita a Deyra</h3>
-              <p>Añádela a tu servidor con los permisos que necesita cada función. Sin permisos de más: el panel te avisa si falta alguno.</p>
-            </div>
-            <div className="step">
-              <div className="num">02</div>
-              <h3>Inicia sesión con Discord</h3>
-              <p>OAuth oficial. Deyra solo lee tus servidores y tus permisos; nunca tu contraseña ni tus mensajes.</p>
-            </div>
-            <div className="step">
-              <div className="num">03</div>
-              <h3>Ajusta tu servidor</h3>
-              <p>Ves los servidores donde eres administrador y Deyra está presente. Eliges uno y editas su configuración.</p>
-            </div>
+        <section className="panel-wrap" id="panel" aria-label="El panel">
+          <div className="panel-copy">
+            <span className="eyebrow">El panel</span>
+            <h2>El bot, por dentro y sin disfraces.</h2>
+            <p>
+              La misma configuración que leen los comandos, en vivo. Cuando guardas en el
+              panel, el bot ya lo está haciendo: respuesta instantánea, sin reinicios ni
+              copiar IDs.
+            </p>
+            <ul className="panel-list">
+              <li>Solo quienes pueden administrar el servidor lo ven.</li>
+              <li>Cada guardado pasa la misma validación que un comando real.</li>
+              <li>Tus datos viven en tu instancia del bot, no en un tercero.</li>
+            </ul>
+            <Link className="text-link" href="/dashboard">Abrir el panel <ArrowRight size={16} aria-hidden="true" style={{ verticalAlign: -2 }} /></Link>
           </div>
-        </section>
 
-        <section className="section" id="seguridad" style={{ paddingTop: 8 }}>
-          <div className="security">
-            <div>
-              <span className="kicker">Seguridad</span>
-              <h2 className="display">Tu cuenta no sale de Discord. Tus permisos mandan.</h2>
-              <p className="sub" style={{ marginTop: 12 }}>El panel no guarda nada en claro ni comparte tu sesión con el bot: la API del bot valida cada cambio y el panel solo actúa sobre servidores donde tú ya puedes administrar.</p>
-              <div className="check-list">
-                {[
-                  'Sesión firmada y cifrada en cookie httpOnly. Nada de tokens en localStorage.',
-                  'El panel solo lista servidores donde tienes administrador o gestión del servidor y Deyra está dentro.',
-                  'Cada guardado pasa por la misma validación que los comandos: nada de valores arbitrarios en tu servidor.',
-                  'Sin acceso a mensajes, DMs ni contenido privado. Solo lectura de la configuración.',
-                ].map((item) => (
-                  <div key={item} className="check-item">
-                    <BadgeCheck size={19} aria-hidden="true" />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
+          <div className="plate" aria-label="Vista esquemática del panel">
+            <div className="plate-bar">
+              <span className="dot" /><span className="dot" /><span className="dot" />
+              <span className="plate-title">Deyra · Panel</span>
             </div>
-
-            <div className="card card-pad" aria-label="Requisitos">
-              <span className="kicker">Lo que necesitas</span>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 400, marginTop: 12 }}>Nada que no tengas ya</h3>
-              <div style={{ display: 'grid', gap: 12, marginTop: 14 }}>
-                {[
-                  { icon: Server, text: 'Deyra invitada a tu servidor (o el botón de arriba).' },
-                  { icon: Users, text: 'Permiso de administrador o de gestión del servidor en Discord.' },
-                  { icon: Lock, text: 'Tu cuenta de Discord. Sin formularios ni registro extra.' },
-                ].map(({ icon: Icon, text }) => (
-                  <div key={text} className="check-item" style={{ alignItems: 'center' }}>
-                    <Icon size={19} aria-hidden="true" style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                    <span className="muted">{text}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="divider" />
-              <a className="btn btn-primary btn-block" href={ctaHref}>
-                Añadir a Discord
-                <ChevronRight size={17} aria-hidden="true" />
-              </a>
-              <p className="hint" style={{ marginTop: 10, textAlign: 'center' }}>¿Ya la tienes? <a href="/api/auth/login" style={{ color: 'var(--accent-hover)' }}>Inicia sesión</a></p>
+            <div className="plate-body">
+              <div className="prow"><span><b>Automod</b> · invites, links con allowlist</span><span className="ok">Activo</span></div>
+              <div className="prow"><span><b>Honeypot</b> · #free-gifts · rotación 6h</span><span className="ok">Activo</span></div>
+              <div className="prow"><span><b>Anti-nuke</b> · umbral 3 / 10 min</span><span className="ok">Activo</span></div>
+              <div className="prow"><span><b>Tickets</b> · categoría Soporte</span><span className="warn">2 abiertos</span></div>
+              <div className="prow"><span><b>Registro</b> · #modlog · mensajes y miembros</span><span className="ok">Activo</span></div>
             </div>
           </div>
         </section>
 
-        <section className="section" style={{ paddingTop: 8 }}>
-          <span className="kicker">Preguntas</span>
-          <div className="faq">
-            <details>
-              <summary>¿El panel es gratis?<ChevronRight className="chev" size={18} aria-hidden="true" /></summary>
-              <p>Sí. El panel es parte de Deyra y no tiene planes de pago ni límites de uso. Lo que consumes es la propia base de datos de tu instancia del bot.</p>
-            </details>
-            <details>
-              <summary>¿Quién puede ver y cambiar la configuración?<ChevronRight className="chev" size={18} aria-hidden="true" /></summary>
-              <p>Solo miembros del servidor con permiso de administrador o de gestión del servidor, y únicamente en los servidores donde Deyra está presente. Un miembro normal no ve nada del panel de ese servidor.</p>
-            </details>
-            <details>
-              <summary>¿Dónde se guardan los datos?<ChevronRight className="chev" size={18} aria-hidden="true" /></summary>
-              <p>En la misma base de datos del bot que ya usas (SQLite). El panel no guarda copias: cada cambio va directo a esa base y los comandos leen de ahí.</p>
-            </details>
+        <section className="oath" id="garantia" aria-label="Garantía">
+          <div>
+            <span className="eyebrow">Garantía</span>
+            <p className="big">No toca tu cuenta.<br />Toca <em>tu servidor.</em></p>
+            <div className="rule">
+              <p><b>El panel nunca ve tus mensajes ni tus DMs.</b> Ve la configuración del servidor y tu permiso para administrarlo, nada más.</p>
+              <p><b>Nada viaja a terceros.</b> La base de datos vive donde corre el bot, y el bot valida cada cambio como un comando real.</p>
+              <p><b>Discord es de Discord.</b> Deyra no es un servicio de Discord ni está afiliada con Discord Inc. Es un bot independiente que convive con él.</p>
+            </div>
           </div>
+          <div className="seal-stamp" aria-hidden="true"><span>Deyra<br />Guardiana</span></div>
+        </section>
+
+        <section className="faq" id="preguntas" aria-label="Preguntas">
+          <span className="eyebrow">Preguntas</span>
+          <h2>Sin letra pequeña.</h2>
+          <details>
+            <summary>¿Cuánto cuesta?<ArrowRight size={16} className="chev" aria-hidden="true" /></summary>
+            <p>Nada. El panel y el bot son gratuitos; los datos viven en la propia base de datos del bot (SQLite), en tu máquina o tu hosting.</p>
+          </details>
+          <details>
+            <summary>¿Quién puede ver y cambiar la configuración?<ArrowRight size={16} className="chev" aria-hidden="true" /></summary>
+            <p>Solo miembros con permiso de administrador o de gestión del servidor, y únicamente en los servidores donde Deyra está presente. Un miembro normal no ve nada del panel.</p>
+          </details>
+          <details>
+            <summary>¿Se lleva mi cuenta o mi correo?<ArrowRight size={16} className="chev" aria-hidden="true" /></summary>
+            <p>No. El login pasa por el OAuth oficial de Discord; la sesión vive en una cookie httpOnly y el bot nunca la ve. El panel habla con el bot por HTTPS y valida todo.</p>
+          </details>
+          <details>
+            <summary>¿Puedo salir cuando quiera?<ArrowRight size={16} className="chev" aria-hidden="true" /></summary>
+            <p>Sí. Desinstalar el bot te devuelve tu servidor tal cual estaba: la configuración vive donde corrió siempre, en tu propia instancia.</p>
+          </details>
         </section>
       </main>
 
-      <footer className="land-footer">
+      <div className="closing">
         <div className="inner">
-          <div className="brand" style={{ textDecoration: 'none' }}>
-            <img className="brand-logo" src="/logo.png" alt="" width={34} height={40} />
-            <span style={{ color: 'var(--muted)', fontSize: 13 }}>Deyra · Todo en uno para tu servidor</span>
+          <div>
+            <h2>Sellar este servidor.</h2>
+            <p>Añádela y en treinta segundos ordena el caos.</p>
           </div>
-          <a className="btn btn-ghost btn-sm" href={ctaHref}>Añadir a Discord</a>
+          <a className="btn-ink" href={ctaHref}>Añadir a Discord<ArrowRight size={17} aria-hidden="true" /></a>
+        </div>
+      </div>
+
+      <footer className="footer">
+        <div className="inner">
+          <span>Deyra — la guardiana del orden.</span>
+          <span>No afiliada con Discord Inc. · Hecha en español.</span>
+          <Link href="/dashboard">Abrir el panel</Link>
         </div>
       </footer>
     </>

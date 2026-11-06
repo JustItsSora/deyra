@@ -36,7 +36,7 @@ export default function HeroStage() {
       <div className="pt-arch">
         <img className="pt-img" src="/danica.jpg" alt="" width={736} height={736} fetchPriority="high" />
         <span className="pt-gem" />
-        <span className="pt-sweep" />
+
         <span className="pt-shade" />
       </div>
 

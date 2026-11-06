@@ -30,10 +30,18 @@ export function useSectionForm<T extends object>({ guildId, section, initial }: 
   const save = useCallback(async () => {
     setSaving(true);
     try {
+      // Envía SOLO lo que cambió: el bot valida el cuerpo con claves whitelist
+      // y rechaza campos de solo lectura (p. ej. caughtCount/lastRotationAt).
+      const changed: Partial<T> = {};
+      for (const key of Object.keys(state) as (keyof T)[]) {
+        if (JSON.stringify(state[key]) !== JSON.stringify(saved[key])) {
+          (changed as Record<string, unknown>)[key as string] = state[key];
+        }
+      }
       const res = await fetch(`/api/guilds/${guildId}/${section}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(state),
+        body: JSON.stringify(changed),
       });
       const data = (await res.json().catch(() => ({}))) as T & { message?: string };
       if (!res.ok) {

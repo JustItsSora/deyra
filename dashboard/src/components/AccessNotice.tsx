@@ -11,8 +11,12 @@ export default function AccessNotice(props: AccessNoticeProps) {
   if (props.kind === 'bot-offline') {
     return (
       <main className="content" style={{ paddingTop: 64 }}>
-        <EmptyState icon={Bot} title="El bot no responde ahora mismo">
-          <p>El panel necesita hablar con Deyra para leer y guardar la configuración. Comprueba que el bot esté en línea y que <code>BOT_API_URL</code> apunte a él, y vuelve a intentarlo.</p>
+        <EmptyState
+          icon={Bot}
+          title="El bot no responde ahora mismo"
+          action={<a className="btn btn-primary btn-sm" href=".">Reintentar</a>}
+        >
+          <p>El panel necesita hablar con Deyra para leer y guardar la configuración. Si el bot se está reiniciando (tarda unos segundos en arrancar) o no está en línea, inténtalo de nuevo.</p>
         </EmptyState>
       </main>
     );

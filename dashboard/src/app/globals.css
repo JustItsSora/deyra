@@ -366,17 +366,6 @@ a { color: inherit; }
 .medallion img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; border-radius: 50%; display: block; }
 @media (max-width: 960px) { .medallion { width: min(70%, 280px); } }
 
-.seal {
-  position: absolute; right: -10px; bottom: 10px; width: 96px; height: 96px;
-  border-radius: 50%; background: var(--accent);
-  display: grid; place-items: center; transform: rotate(-8deg);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(0, 0, 0, 0.35);
-}
-.seal span {
-  font-family: var(--font-display); color: var(--accent-ink);
-  letter-spacing: 0.16em; font-size: 17px;
-}
-
 .hairline { border: 0; border-top: 1px solid var(--border); margin: 0; }
 .spec-strip {
   max-width: 1180px; margin: 0 auto; padding: 14px 20px;
@@ -454,7 +443,7 @@ a { color: inherit; }
 @media (max-width: 560px) { .prow { flex-direction: column; align-items: flex-start; gap: 6px; } }
 
 .oath { max-width: 1180px; margin: 0 auto; padding: 76px 20px 68px;
-  display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 44px; align-items: start; }
+  display: grid; grid-template-columns: 1fr; gap: 44px; align-items: start; }
 @media (max-width: 960px) { .oath { grid-template-columns: 1fr; padding: 56px 20px; } }
 .oath .big { font-family: var(--font-display); font-size: clamp(1.7rem, 3.2vw, 2.7rem);
   line-height: 1.25; color: var(--text); }
@@ -462,16 +451,6 @@ a { color: inherit; }
 .oath .rule { border-top: 1px solid var(--border); padding-top: 18px; margin-top: 26px;
   display: grid; gap: 14px; color: var(--muted); line-height: 1.65; max-width: 58ch; }
 .oath .rule b { color: var(--text); font-weight: 600; }
-.seal-stamp {
-  width: 150px; height: 150px; border-radius: 50%; border: 2px solid var(--accent);
-  display: grid; place-items: center; transform: rotate(-8deg); margin-left: auto;
-  box-shadow: inset 0 0 0 1px var(--bg), 0 0 0 1px var(--accent);
-}
-.seal-stamp span {
-  font-family: var(--font-display); font-size: 15px;
-  letter-spacing: 0.16em; color: var(--accent-hover); text-align: center;
-  line-height: 1.45; text-transform: uppercase;
-}
 
 .faq { max-width: 1180px; margin: 0 auto; padding: 56px 20px 76px; border-top: 1px solid var(--border); }
 .faq details { border-top: 1px solid var(--border); background: transparent; }

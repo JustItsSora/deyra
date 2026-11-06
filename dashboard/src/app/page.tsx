@@ -60,7 +60,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
             </p>
             <div className="cta-row">
               <a className="btn btn-primary" href={ctaHref}>Añadir a Discord</a>
-              <a className="btn btn-ghost" href="#servicio">Ver el archivo</a>
+              <a className="btn btn-ghost" href="/api/auth/login">Iniciar sesión</a>
             </div>
             <p className="micro">
               <span>Instalación en 30 segundos</span>
@@ -72,7 +72,6 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
           <div className="medallion" aria-hidden="true">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/danica.jpg" alt="" fetchPriority="high" />
-            <span className="seal"><span>DEYRA</span></span>
           </div>
         </section>
 
@@ -164,7 +163,6 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
               <p><b>Discord es de Discord.</b> Deyra no es un servicio de Discord ni está afiliada con Discord Inc. Es un bot independiente que convive con él.</p>
             </div>
           </div>
-          <div className="seal-stamp" aria-hidden="true"><span>Deyra<br />Guardiana</span></div>
         </section>
 
         <section className="faq" id="preguntas" aria-label="Preguntas">
@@ -172,7 +170,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
           <h2>Sin letra pequeña.</h2>
           <details>
             <summary>¿Cuánto cuesta?<ArrowRight size={16} className="chev" aria-hidden="true" /></summary>
-            <p>Nada. El panel y el bot son gratuitos; los datos viven en la propia base de datos del bot (SQLite), en tu máquina o tu hosting.</p>
+            <p>Nada. Es gratis, y tus datos viven en el servidor del bot.</p>
           </details>
           <details>
             <summary>¿Quién puede ver y cambiar la configuración?<ArrowRight size={16} className="chev" aria-hidden="true" /></summary>

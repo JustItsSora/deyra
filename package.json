@@ -1,6 +1,6 @@
 {
   "name": "deyra",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Deyra — bot todo-en-uno para Discord: moderación, tickets, automod, economía, niveles, diversión, utilidad, música con filtros, biblioteca personal, 24/7 y más.",
   "main": "src/client.js",
   "scripts": {

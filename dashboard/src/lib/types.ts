@@ -39,6 +39,10 @@ export type HoneypotSection = {
   channelId: string | null;
   action: 'timeout' | 'kick' | 'ban';
   timeoutMinutes: number;
+  autoPurge: boolean;
+  rotationHours: number;
+  caughtCount: number;
+  lastRotationAt: string | null;
 };
 
 export type AntiNukeSection = {
@@ -70,3 +74,45 @@ export type BundleConfig = {
 
 export type BotChannel = { id: string; name: string; type: number; parentId: string | null };
 export type BotRole = { id: string; name: string; color: string; position: number; managed: boolean; isEveryone: boolean };
+
+export type LevelsSection = {
+  enabled: boolean;
+  announceLevelUp: boolean;
+  announceChannelId: string | null;
+  xpPerMessageMin: number;
+  xpPerMessageMax: number;
+  xpCooldownSeconds: number;
+  roleRewards: Record<string, string>;
+  ignoredChannels: string[];
+};
+
+export type TicketsSection = {
+  categoryId: string | null;
+  panelChannelId: string | null;
+  logChannelId: string | null;
+  supportRoleIds: string[];
+  welcomeMessage: string | null;
+  panelTitle: string;
+  panelDescription: string;
+  ticketCounter: number;
+};
+
+export type MusicSection = {
+  defaultVolume: number;
+  defaultAutoplay: boolean;
+  defaultFairplay: boolean;
+  fairplayRoleId: string | null;
+  twentyFourSeven: boolean;
+  voice247Id: string | null;
+  text247Id: string | null;
+  leaveOnEmptyMs: number;
+  leaveOnEndMs: number;
+  historyEnabled: boolean;
+  nowPlayingPanel: boolean;
+  maxQueueSize: number;
+};
+
+export type AutoroleSection = {
+  roleIds: string[];
+  botRoleIds: string[];
+};

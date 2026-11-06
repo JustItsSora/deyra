@@ -30,6 +30,14 @@ module.exports = {
             .addIntegerOption(o => o.setName('timeout_minutos').setDescription('Minutos de silencio si la acción es timeout (default 1440)').setRequired(false)))
         .addSubcommand(s => s.setName('disable')
             .setDescription('Desactiva la trampa y borra la configuración'))
+        .addSubcommand(s => s.setName('rotate')
+            .setDescription('Rota automáticamente el nombre del canal señuelo cada N horas')
+            .addIntegerOption(o => o.setName('horas').setDescription('0 desactiva la rotación; 1 a 168 horas').setRequired(true).setMinValue(0).setMaxValue(168)))
+        .addSubcommand(s => s.setName('autopurge')
+            .setDescription('Borra los mensajes recientes de quien cae en el señuelo')
+            .addBooleanOption(o => o.setName('activo').setDescription('true para activar, false para desactivar').setRequired(true)))
+        .addSubcommand(s => s.setName('stats')
+            .setDescription('Muestra cuántas cuentas cayeron en la trampa'))
         .addSubcommand(s => s.setName('status')
             .setDescription('Muestra la configuración actual del señuelo')),
 
@@ -48,7 +56,7 @@ module.exports = {
             args = args.slice(1);
         }
 
-        const validSubs = ['setup', 'channel', 'toggle', 'action', 'disable', 'status'];
+        const validSubs = ['setup', 'channel', 'toggle', 'action', 'rotate', 'autopurge', 'disable', 'stats', 'status'];
         if (!subcommand || !validSubs.includes(subcommand)) {
             const usage = `Uso: \`/honeypot <${validSubs.join('|')}>\``;
             return isSlash

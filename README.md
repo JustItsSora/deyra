@@ -101,9 +101,13 @@ npm run db:migrate -- --dry-run # solo muestra
 
 ---
 
-## Dashboard web (nuevo en v2.2.0)
+## Dashboard web (v2.3.0)
 
-Deyra incluye un panel web completo en `dashboard/` (Next.js) para ver y editar la configuración del servidor sin tocar comandos: automod, honeypot, anti-nuke, bienvenidas, canales de logs y ajustes generales, con login vía OAuth de Discord y acceso solo para administradores del servidor.
+Deyra incluye un panel web completo en `dashboard/` (Next.js) para ver y editar la configuración del servidor sin tocar comandos, con login vía OAuth de Discord y acceso solo para administradores del servidor. Secciones: Resumen, General (prefijo, idioma, canales de sugerencias/confesiones/cumpleaños y modo NSFW), Automod, Honeypot, Anti-nuke, Tickets, Niveles (XP, cooldowns y recompensas por rol), Autorole (humanos y bots), Música (volumen, fairplay, 24/7), Bienvenidas y Registros.
+
+El panel ofrece **varios temas oscuros** (Jade, Ámbar, Medianoche y Ciruela) conmutables desde la barra lateral —tu preferencia se guarda— y animaciones cuidadas en toda la interfaz.
+
+Novedades del honeypot en v2.3.0: **auto-creación del canal señuelo** al activarlo sin canal asignado, **rotación automática del nombre** del canal cada N horas (los bots de raid no lo encuentran dos veces igual), **auto-purge** de los mensajes de quien caiga y contador público de capturas en `/honeypot stats`.
 
 ### Cómo funciona
 

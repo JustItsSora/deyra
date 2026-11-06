@@ -28,3 +28,12 @@ export const getRoles = cache(async (guildId: string): Promise<BotRole[]> => {
     return [];
   }
 });
+
+/** Fetch de una sección individual (fail-soft: null si el bot no responde). */
+export const getSection = cache(async <T>(guildId: string, section: string): Promise<T | null> => {
+  try {
+    return await botGet<T>(`/guilds/${guildId}/${section}`);
+  } catch {
+    return null;
+  }
+});

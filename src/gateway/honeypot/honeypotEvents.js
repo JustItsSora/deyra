@@ -71,6 +71,22 @@ function init(client) {
                 applied = 'sin jerarquía (registrado)';
             }
 
+            // Contador de capturas + purge opcional del canal señuelo.
+            config.caughtCount = (config.caughtCount || 0) + 1;
+            await config.save().catch(() => {});
+
+            if (config.autoPurge) {
+                try {
+                    const recent = await message.channel.messages.fetch({ limit: 100 }).catch(() => null);
+                    const own = recent
+                        ? recent.filter(m => m.author.id === message.author.id && Date.now() - m.createdTimestamp < 14 * 24 * 60 * 60 * 1000)
+                        : null;
+                    if (own && own.size > 0) await message.channel.bulkDelete(own, true).catch(() => {});
+                } catch (err) {
+                    console.error('[honeypot] Error en autoPurge:', err.message);
+                }
+            }
+
             await logModAction(message.guild, {
                 title: `${emoji('SHIELD')} Honeypot: trampa activada`,
                 description: [

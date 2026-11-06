@@ -22,7 +22,13 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${fraunces.variable}`}>
+    <html lang="es" className={`${inter.variable} ${fraunces.variable}`} data-theme="jade">
+      <head>
+        {/* Aplica el tema guardado antes del primer paint (sin flash) */}
+        <script dangerouslySetInnerHTML={{
+          __html: "(function(){try{var t=localStorage.getItem('deyra-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}})()",
+        }} />
+      </head>
       <body>{children}</body>
     </html>
   );

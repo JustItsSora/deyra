@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   ChevronDown, LayoutDashboard, Settings2, ShieldCheck, Radar, Zap,
-  DoorOpen, ScrollText, LogOut, UserRound, Plus, Check,
+  DoorOpen, ScrollText, LogOut, UserRound, Plus, Check, Ticket, TrendingUp,
+  UserRoundPlus, Music,
 } from 'lucide-react';
+import ThemeSwitcher from './ThemeSwitcher';
 import GuildIcon from './GuildIcon';
 
 export type SidebarGuild = {
@@ -29,7 +31,11 @@ const NAV_ITEMS = [
   { href: '/automod', label: 'Automod', icon: ShieldCheck },
   { href: '/honeypot', label: 'Honeypot', icon: Radar },
   { href: '/seguridad', label: 'Anti-nuke', icon: Zap },
-  { href: '/bienvenida', label: 'Bienvenida', icon: DoorOpen },
+  { href: '/tickets', label: 'Tickets', icon: Ticket },
+  { href: '/niveles', label: 'Niveles', icon: TrendingUp },
+  { href: '/autorole', label: 'Autorole', icon: UserRoundPlus },
+  { href: '/musica', label: 'Música', icon: Music },
+  { href: '/bienvenida', label: 'Bienvenidas', icon: DoorOpen },
   { href: '/registros', label: 'Registros', icon: ScrollText },
 ];
 
@@ -125,6 +131,7 @@ export default function Sidebar({ guilds, currentGuildId, userName }: SidebarPro
         })}
       </nav>
 
+      <ThemeSwitcher />
       <div className="side-top" style={{ marginTop: 'auto', justifyContent: 'flex-start', padding: '8px 4px 0', borderTop: '1px solid var(--border)' }}>
         <UserRound size={18} aria-hidden="true" style={{ color: 'var(--muted)' }} />
         <span className="small muted" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName}</span>

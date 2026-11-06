@@ -20,6 +20,7 @@
   --danger: #d4694e;
   --danger-hover: #e07b5e;
   --focus: #5eb7ae;
+  --selection: rgba(94, 183, 174, 0.32);
   --radius-lg: 14px;
   --radius-md: 10px;
   --radius-sm: 8px;
@@ -43,7 +44,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-::selection { background: rgba(94, 183, 174, 0.32); color: var(--text); }
+::selection { background: var(--selection); color: var(--text); }
 
 :focus-visible {
   outline: 2px solid var(--focus);
@@ -548,7 +549,6 @@ img { max-width: 100%; }
   max-width: min(360px, calc(100vw - 32px));
   animation: toast-in 180ms ease;
 }
-@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
 .toast.ok .icon { color: var(--ok); }
 .toast.err .icon { color: var(--danger-hover); }
 
@@ -607,3 +607,125 @@ img { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* ── Temas (override de tokens) ─────────────────────────── */
+[data-theme='ambar'] {
+  --bg: #151109;
+  --bg-soft: #1a1510;
+  --surface: #201a14;
+  --surface-2: #29221a;
+  --surface-3: #332b21;
+  --border: #39301f;
+  --border-strong: #4f4630;
+  --text: #ece7dc;
+  --muted: #a89e8a;
+  --faint: #7a715f;
+  --accent: #d4a24e;
+  --accent-hover: #e2b96a;
+  --accent-ink: #1a1408;
+  --focus: #d4a24e;
+  --selection: rgba(212, 162, 78, 0.32);
+}
+[data-theme='medianoche'] {
+  --bg: #0e1320;
+  --bg-soft: #121829;
+  --surface: #161d31;
+  --surface-2: #1d2540;
+  --surface-3: #242d4d;
+  --border: #2b3452;
+  --border-strong: #3d4767;
+  --text: #e6e8f2;
+  --muted: #8d97b8;
+  --faint: #5f6a8c;
+  --accent: #7aa2f7;
+  --accent-hover: #93b4ff;
+  --accent-ink: #0b1024;
+  --focus: #7aa2f7;
+  --selection: rgba(122, 162, 247, 0.32);
+}
+[data-theme='ciruela'] {
+  --bg: #171021;
+  --bg-soft: #1d152b;
+  --surface: #221a32;
+  --surface-2: #2b233e;
+  --surface-3: #342c4c;
+  --border: #38314f;
+  --border-strong: #4f4567;
+  --text: #ece7f2;
+  --muted: #a294c0;
+  --faint: #6f638e;
+  --accent: #b48cf2;
+  --accent-hover: #c8a6ff;
+  --accent-ink: #1b0f2e;
+  --focus: #b48cf2;
+  --selection: rgba(180, 140, 242, 0.32);
+}
+
+/* ── Selector de tema (sidebar) ─────────────────────────── */
+.side-theme { position: relative; }
+.side-theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  cursor: pointer;
+  color: var(--text);
+  text-align: left;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+.side-theme-btn:hover { background: var(--surface-2); border-color: var(--border); }
+.theme-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.14); }
+.side-theme-pop {
+  position: absolute;
+  z-index: 46;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: 5px;
+}
+.theme-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 10px;
+  font-size: 13.5px;
+  color: var(--text);
+  cursor: pointer;
+}
+.theme-opt:hover { background: var(--surface-3); }
+.theme-opt[aria-selected='true'] { color: var(--text); }
+
+/* ── Animaciones sutiles ────────────────────────────────── */
+@keyframes pagein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes pop { from { opacity: 0; transform: scale(0.96) translateY(6px); } to { opacity: 1; transform: none; } }
+
+.content { animation: pagein 0.34s ease both; }
+.page-head { animation: rise 0.4s ease both; }
+.card, .stat, .section-block { animation: rise 0.45s ease both; }
+.section-block:nth-of-type(2) .card, .section-block:nth-of-type(2).card { animation-delay: 60ms; }
+.section-block:nth-of-type(3) .card, .section-block:nth-of-type(3).card { animation-delay: 110ms; }
+.section-block:nth-of-type(4) .card, .section-block:nth-of-type(4).card { animation-delay: 160ms; }
+
+.btn { transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease, box-shadow 140ms ease; }
+.btn:active { transform: scale(0.98); }
+.btn-primary:hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent), 0 8px 24px color-mix(in srgb, var(--accent) 18%, transparent); }
+
+.guild-card, .feature, .stat, .faq details { transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease; }
+.guild-card:hover, .feature:hover { box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35); }
+
+.listbox-pop { animation: pop 0.16s ease both; }
+.toast { animation: pop 0.18s ease both; }

@@ -23,7 +23,8 @@ const { ChannelType } = require('discord.js');
 const http = require('http');
 const crypto = require('crypto');
 const config = require('../config');
-const { GuildConfig, AutomodConfig, HoneypotConfig, AntiNukeConfig, WelcomeConfig, Warn } = require('../data/models');
+const { GuildConfig, AutomodConfig, HoneypotConfig, AntiNukeConfig, WelcomeConfig, Warn, LevelConfig, TicketConfig, MusicConfig, AutoRole } = require('../data/models');
+const { ensureHoneypotChannel } = require('../lib/honeypot');
 
 const MAX_BODY = 64 * 1024;
 const RATE_LIMIT = 60;
@@ -206,6 +207,62 @@ function honeypotJson(cfg) {
         channelId: cfg?.channelId ?? null,
         action: cfg?.action ?? 'kick',
         timeoutMinutes: cfg?.timeoutMinutes ?? 1440,
+        autoPurge: cfg?.autoPurge ?? false,
+        rotationHours: cfg?.rotationHours ?? 0,
+        caughtCount: cfg?.caughtCount ?? 0,
+        lastRotationAt: cfg?.lastRotationAt ? new Date(cfg.lastRotationAt).toISOString() : null,
+    };
+}
+
+function levelsJson(cfg) {
+    let roleRewards = {};
+    try { roleRewards = JSON.parse(cfg?.roleRewards || '{}'); } catch { roleRewards = {}; }
+    return {
+        enabled: cfg?.enabled ?? true,
+        announceLevelUp: cfg?.announceLevelUp ?? true,
+        announceChannelId: cfg?.announceChannelId ?? null,
+        xpPerMessageMin: cfg?.xpPerMessageMin ?? 15,
+        xpPerMessageMax: cfg?.xpPerMessageMax ?? 25,
+        xpCooldownSeconds: cfg?.xpCooldownSeconds ?? 60,
+        roleRewards,
+        ignoredChannels: JSON.parse(cfg?.ignoredChannels || '[]'),
+    };
+}
+
+function ticketsJson(cfg) {
+    return {
+        categoryId: cfg?.categoryId ?? null,
+        panelChannelId: cfg?.panelChannelId ?? null,
+        logChannelId: cfg?.logChannelId ?? null,
+        supportRoleIds: JSON.parse(cfg?.supportRoleIds || '[]'),
+        welcomeMessage: cfg?.welcomeMessage ?? null,
+        panelTitle: cfg?.panelTitle ?? 'Soporte',
+        panelDescription: cfg?.panelDescription ?? 'Haz clic en el botón de abajo para abrir un ticket.',
+        ticketCounter: cfg?.ticketCounter ?? 0,
+    };
+}
+
+function musicJson(cfg) {
+    return {
+        defaultVolume: cfg?.defaultVolume ?? 80,
+        defaultAutoplay: cfg?.defaultAutoplay ?? false,
+        defaultFairplay: cfg?.defaultFairplay ?? false,
+        fairplayRoleId: cfg?.fairplayRoleId ?? null,
+        twentyFourSeven: cfg?.twentyFourSeven ?? false,
+        voice247Id: cfg?.voice247Id ?? null,
+        text247Id: cfg?.text247Id ?? null,
+        leaveOnEmptyMs: cfg?.leaveOnEmptyMs ?? 60000,
+        leaveOnEndMs: cfg?.leaveOnEndMs ?? 120000,
+        historyEnabled: cfg?.historyEnabled ?? true,
+        nowPlayingPanel: cfg?.nowPlayingPanel ?? true,
+        maxQueueSize: cfg?.maxQueueSize ?? 500,
+    };
+}
+
+function autoroleJson(cfg) {
+    return {
+        roleIds: JSON.parse(cfg?.roleIds || '[]'),
+        botRoleIds: JSON.parse(cfg?.botRoleIds || '[]'),
     };
 }
 
@@ -280,7 +337,7 @@ async function patchAutomod(guildId, patch) {
 }
 
 async function patchHoneypot(guild, patch) {
-    const allowed = ['enabled', 'channelId', 'action', 'timeoutMinutes'];
+    const allowed = ['enabled', 'channelId', 'action', 'timeoutMinutes', 'autoPurge', 'rotationHours'];
     for (const key of Object.keys(patch)) {
         if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
     }
@@ -290,6 +347,8 @@ async function patchHoneypot(guild, patch) {
         enabled: boolRule,
         action: enumOf('timeout', 'kick', 'ban'),
         timeoutMinutes: v => asInt(v, 1, 40320) ?? undefined,
+        autoPurge: boolRule,
+        rotationHours: v => asInt(v, 0, 168) ?? undefined,
         channelId: v => {
             if (v === null) return null;
             if (!isSnowflake(v)) return undefined;
@@ -301,11 +360,25 @@ async function patchHoneypot(guild, patch) {
 
     const result = applyPatch(cfg, patch, rules);
     if (result.error) return { error: `invalid value for: ${result.error}` };
-    if (cfg.enabled && !cfg.channelId) return { error: 'cannot enable honeypot without a channelId' };
+
+    // Al activar y no tener canal: crear uno propio con nombre señuelo.
+    // Si el bot no puede crear canales, se reporta y no se activa a medias.
+    let createdChannel = null;
+    if (cfg.enabled && !cfg.channelId) {
+        try {
+            const created = await ensureHoneypotChannel(guild);
+            cfg.channelId = created.id;
+            createdChannel = created.name;
+        } catch (err) {
+            console.error('[admin/honeypot] No se pudo auto-crear el canal:', err.message);
+            return { error: 'el bot no pudo crear el canal señuelo (necesita Gestionar canales)' };
+        }
+    }
+
     await cfg.save();
 
     require('../gateway/honeypot/honeypotEvents').invalidateCache(guild.id);
-    return { data: honeypotJson(cfg) };
+    return { data: { ...honeypotJson(cfg), createdChannel } };
 }
 
 async function patchAntiNuke(guildId, patch) {
@@ -361,8 +434,147 @@ async function patchWelcome(guild, patch) {
     return { data: welcomeJson(cfg) };
 }
 
+function asSnowflakeMap(v, maxEntries = 100, maxLevel = 1000) {
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
+    const entries = Object.entries(v);
+    if (entries.length > maxEntries) return null;
+    const out = {};
+    for (const [levelKey, roleId] of entries) {
+        const level = Number(levelKey);
+        if (!Number.isInteger(level) || level < 1 || level > maxLevel) return null;
+        if (!isSnowflake(roleId)) return null;
+        out[String(level)] = roleId;
+    }
+    // Orden ascendente por nivel para estabilidad visual
+    return Object.fromEntries(Object.entries(out).sort((a, b) => Number(a[0]) - Number(b[0])));
+}
+
+async function patchLevels(guildId, patch) {
+    const allowed = ['enabled', 'announceLevelUp', 'announceChannelId', 'xpPerMessageMin', 'xpPerMessageMax', 'xpCooldownSeconds', 'roleRewards', 'ignoredChannels'];
+    for (const key of Object.keys(patch)) {
+        if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
+    }
+    const [cfg] = await LevelConfig.findOrCreate({ where: { guildId }, defaults: { guildId } });
+
+    const rules = {
+        enabled: boolRule,
+        announceLevelUp: boolRule,
+        announceChannelId: idOrNull,
+        xpPerMessageMin: v => asInt(v, 1, 200) ?? undefined,
+        xpPerMessageMax: v => asInt(v, 1, 200) ?? undefined,
+        xpCooldownSeconds: v => asInt(v, 0, 3600) ?? undefined,
+        roleRewards: v => { const m = asSnowflakeMap(v); return m ? JSON.stringify(m) : undefined; },
+        ignoredChannels: v => { const a = asSnowflakeArray(v); return a ? JSON.stringify(a) : undefined; },
+    };
+
+    const result = applyPatch(cfg, patch, rules);
+    if (result.error) return { error: `invalid value for: ${result.error}` };
+    if (cfg.xpPerMessageMin > cfg.xpPerMessageMax) {
+        return { error: 'xpPerMessageMin no puede ser mayor que xpPerMessageMax' };
+    }
+    await cfg.save();
+    return { data: levelsJson(cfg) };
+}
+
+async function patchTickets(guild, patch) {
+    const allowed = ['categoryId', 'panelChannelId', 'logChannelId', 'supportRoleIds', 'welcomeMessage', 'panelTitle', 'panelDescription'];
+    for (const key of Object.keys(patch)) {
+        if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
+    }
+    const [cfg] = await TicketConfig.findOrCreate({ where: { guildId: guild.id }, defaults: { guildId: guild.id } });
+
+    const guildChannel = (id) => guild.channels.cache.get(id) || null;
+    const categoryRule = (v) => {
+        if (v === null || v === '') return null;
+        if (!isSnowflake(v)) return undefined;
+        const ch = guildChannel(v);
+        return ch && ch.type === ChannelType.GuildCategory ? v : undefined;
+    };
+    const textChannelRule = (v) => {
+        if (v === null || v === '') return null;
+        if (!isSnowflake(v)) return undefined;
+        const ch = guildChannel(v);
+        return ch && ch.isTextBased?.() ? v : undefined;
+    };
+
+    const rules = {
+        categoryId: categoryRule,
+        panelChannelId: textChannelRule,
+        logChannelId: textChannelRule,
+        supportRoleIds: v => { const a = asSnowflakeArray(v, 20); return a ? JSON.stringify(a) : undefined; },
+        welcomeMessage: v => (v === null ? null : (typeof v === 'string' && v.trim().length <= 500 ? (v.trim() || null) : undefined)),
+        panelTitle: v => (typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 80 ? v.trim() : undefined),
+        panelDescription: v => (typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 200 ? v.trim() : undefined),
+    };
+
+    const result = applyPatch(cfg, patch, rules);
+    if (result.error) return { error: `invalid value for: ${result.error}` };
+    await cfg.save();
+    return { data: ticketsJson(cfg) };
+}
+
+async function patchMusic(guild, patch) {
+    const allowed = ['defaultVolume', 'defaultAutoplay', 'defaultFairplay', 'fairplayRoleId', 'twentyFourSeven', 'voice247Id', 'text247Id', 'leaveOnEmptyMs', 'leaveOnEndMs', 'historyEnabled', 'nowPlayingPanel', 'maxQueueSize'];
+    for (const key of Object.keys(patch)) {
+        if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
+    }
+    const [cfg] = await MusicConfig.findOrCreate({ where: { guildId: guild.id }, defaults: { guildId: guild.id } });
+
+    const voiceRule = (v) => {
+        if (v === null || v === '') return null;
+        if (!isSnowflake(v)) return undefined;
+        const ch = guild.channels.cache.get(v);
+        const ok = ch && (ch.type === ChannelType.GuildVoice || ch.type === ChannelType.GuildStageVoice);
+        return ok ? v : undefined;
+    };
+    const textRule = (v) => {
+        if (v === null || v === '') return null;
+        if (!isSnowflake(v)) return undefined;
+        const ch = guild.channels.cache.get(v);
+        return ch && ch.isTextBased?.() ? v : undefined;
+    };
+
+    const rules = {
+        defaultVolume: v => asInt(v, 0, 100) ?? undefined,
+        defaultAutoplay: boolRule,
+        defaultFairplay: boolRule,
+        fairplayRoleId: idOrNull,
+        twentyFourSeven: boolRule,
+        voice247Id: voiceRule,
+        text247Id: textRule,
+        leaveOnEmptyMs: v => asInt(v, 0, 3600000) ?? undefined,
+        leaveOnEndMs: v => asInt(v, 0, 3600000) ?? undefined,
+        historyEnabled: boolRule,
+        nowPlayingPanel: boolRule,
+        maxQueueSize: v => asInt(v, 1, 5000) ?? undefined,
+    };
+
+    const result = applyPatch(cfg, patch, rules);
+    if (result.error) return { error: `invalid value for: ${result.error}` };
+    await cfg.save();
+    return { data: musicJson(cfg) };
+}
+
+async function patchAutorole(guildId, patch) {
+    const allowed = ['roleIds', 'botRoleIds'];
+    for (const key of Object.keys(patch)) {
+        if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
+    }
+    const [cfg] = await AutoRole.findOrCreate({ where: { guildId }, defaults: { guildId } });
+
+    const rules = {
+        roleIds: v => { const a = asSnowflakeArray(v, 20); return a ? JSON.stringify(a) : undefined; },
+        botRoleIds: v => { const a = asSnowflakeArray(v, 20); return a ? JSON.stringify(a) : undefined; },
+    };
+
+    const result = applyPatch(cfg, patch, rules);
+    if (result.error) return { error: `invalid value for: ${result.error}` };
+    await cfg.save();
+    return { data: autoroleJson(cfg) };
+}
+
 async function patchGuild(guildId, patch) {
-    const allowed = ['prefix', 'language', 'modLogChannelId', 'memberLogChannelId', 'messageLogChannelId', 'muteRoleId'];
+    const allowed = ['prefix', 'language', 'modLogChannelId', 'memberLogChannelId', 'messageLogChannelId', 'muteRoleId', 'suggestionsChannelId', 'confessionsChannelId', 'birthdayChannelId', 'nsfw'];
     for (const key of Object.keys(patch)) {
         if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
     }
@@ -371,7 +583,9 @@ async function patchGuild(guildId, patch) {
     const rules = {
         prefix: v => (v === null ? null : (typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 5 ? v.trim() : undefined)),
         language: enumOf('es', 'en'),
+        nsfw: boolRule,
         modLogChannelId: idOrNull, memberLogChannelId: idOrNull, messageLogChannelId: idOrNull, muteRoleId: idOrNull,
+        suggestionsChannelId: idOrNull, confessionsChannelId: idOrNull, birthdayChannelId: idOrNull,
     };
 
     const result = applyPatch(cfg, patch, rules);
@@ -382,11 +596,16 @@ async function patchGuild(guildId, patch) {
 
 // ── Router ────────────────────────────────────────────────────────────────
 
+// Devuelve todos los canales relevantes con su tipo (texto/voz/categoría/foro),
+// excluyendo hilos y canales de anuncio archivados. El dashboard filtra por
+// tipo según el contexto (p. ej. canales de voz para el 24/7).
+const THREAD_TYPES = new Set([ChannelType.PublicThread, ChannelType.PrivateThread, ChannelType.AnnouncementThread]);
 function channelList(guild) {
     return guild.channels.cache
-        .filter(c => c.isTextBased?.() && c.type !== ChannelType.GuildCategory) // texto y anuncios, sin categorías
+        .filter(c => !THREAD_TYPES.has(c.type))
         .map(c => ({ id: c.id, name: c.name, type: c.type, parentId: c.parentId ?? null }))
-        .sort((a, b) => a.name.localeCompare(b.name));
+        .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name))
+        .slice(0, 500);
 }
 
 function roleList(guild) {
@@ -507,6 +726,40 @@ function startAdminServer(client) {
             }
             if (sub === '/roles' && method === 'GET') {
                 return sendJson(res, 200, { roles: roleList(guild) }, origin);
+            }
+
+            // ── Secciones por-guild (GET + PATCH): levels, tickets, music, autorole ──
+            const SECTION_SECTIONS = { '/levels': 'levels', '/tickets': 'tickets', '/music': 'music', '/autorole': 'autorole' };
+            if (SECTION_SECTIONS[sub]) {
+                const section = SECTION_SECTIONS[sub];
+
+                if (method === 'GET') {
+                    if (section === 'levels') return sendJson(res, 200, levelsJson(await LevelConfig.findOne({ where: { guildId } }).catch(() => null)), origin);
+                    if (section === 'tickets') return sendJson(res, 200, ticketsJson(await TicketConfig.findOne({ where: { guildId } }).catch(() => null)), origin);
+                    if (section === 'music') return sendJson(res, 200, musicJson(await MusicConfig.findOne({ where: { guildId } }).catch(() => null)), origin);
+                    return sendJson(res, 200, autoroleJson(await AutoRole.findOne({ where: { guildId } }).catch(() => null)), origin);
+                }
+
+                if (method === 'PATCH') {
+                    let patch;
+                    try {
+                        patch = await readBody(req);
+                    } catch (err) {
+                        return jsonError(res, err.code === 'BODY_TOO_LARGE' ? 413 : 400, err.code === 'BODY_TOO_LARGE' ? 'body_too_large' : 'bad_json', err.message, origin);
+                    }
+                    if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+                        return jsonError(res, 400, 'bad_body', 'El cuerpo debe ser un objeto JSON.', origin);
+                    }
+
+                    let result;
+                    if (section === 'levels') result = await patchLevels(guildId, patch);
+                    else if (section === 'tickets') result = await patchTickets(guild, patch);
+                    else if (section === 'music') result = await patchMusic(guild, patch);
+                    else result = await patchAutorole(guildId, patch);
+
+                    if (result?.error) return jsonError(res, 400, 'invalid_patch', result.error, origin);
+                    return sendJson(res, 200, result.data, origin);
+                }
             }
 
             // ── PATCHes ──

@@ -15,6 +15,16 @@ class HoneypotConfig extends Model {
             action: { type: DataTypes.ENUM('timeout', 'kick', 'ban'), allowNull: false, defaultValue: 'kick' },
             // Minutos de timeout cuando action = 'timeout'. Default: 1 día.
             timeoutMinutes: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1440 },
+            // Auto-crear el canal señuelo al activar si no hay uno asignado.
+            // (La creación real la hace quien llama a ensureHoneypotChannel:
+            //  el comando /honeypot setup, la API o el toggle.)
+            // 0 en rotationHours = el nombre del canal NO rota.
+            rotationHours: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+            // Borra los mensajes recientes del usuario en el canal señuelo al caer.
+            autoPurge: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+            // Cuántas detecciones acumula (visible en /honeypot stats).
+            caughtCount: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+            lastRotationAt: { type: DataTypes.DATE, allowNull: true },
         }, {
             sequelize,
             modelName: 'HoneypotConfig',

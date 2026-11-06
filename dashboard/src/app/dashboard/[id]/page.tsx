@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
   ShieldCheck, Radar, Zap, ChevronRight, Users, Hash, ShieldUser, TriangleAlert,
-  Settings2, DoorOpen, ScrollText, Rocket,
+  Settings2, DoorOpen, ScrollText, Rocket, Ticket, TrendingUp, UserRoundPlus, Music,
 } from 'lucide-react';
 import { botGet, BotApiError } from '@/lib/bot';
 import AccessNotice from '@/components/AccessNotice';
@@ -45,7 +45,11 @@ export default async function GuildOverview({ params }: { params: Promise<{ id: 
     { href: '/automod', icon: ShieldCheck, label: 'Automod', desc: 'Filtros y escalada' },
     { href: '/honeypot', icon: Radar, label: 'Honeypot', desc: 'Canal señuelo' },
     { href: '/seguridad', icon: Zap, label: 'Anti-nuke', desc: 'Vigilancia audit log' },
-    { href: '/bienvenida', icon: DoorOpen, label: 'Bienvenida', desc: 'Mensajes y tarjetas' },
+    { href: '/tickets', icon: Ticket, label: 'Tickets', desc: 'Soporte y panel' },
+    { href: '/niveles', icon: TrendingUp, label: 'Niveles', desc: 'XP y recompensas' },
+    { href: '/autorole', icon: UserRoundPlus, label: 'Autorole', desc: 'Roles al entrar' },
+    { href: '/musica', icon: Music, label: 'Música', desc: 'Reproductor y 24/7' },
+    { href: '/bienvenida', icon: DoorOpen, label: 'Bienvenidas', desc: 'Mensajes y tarjetas' },
     { href: '/registros', icon: ScrollText, label: 'Registros', desc: 'Canales de log' },
   ];
 

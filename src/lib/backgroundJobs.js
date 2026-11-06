@@ -4,7 +4,8 @@
 
 const cron = require('node-cron');
 const { Op } = require('sequelize');
-const { Reminder, Giveaway, Birthday, GuildConfig } = require('../data/models');
+const { Reminder, Giveaway, Birthday, GuildConfig, HoneypotConfig } = require('../data/models');
+const { rotateHoneypotChannel } = require('./honeypot');
 const { infoPanel } = require('./panel');
 const { pickWinners } = require('./giveawayUtils');
 
@@ -12,7 +13,8 @@ function start(client) {
     startReminderJob(client);
     startGiveawayJob(client);
     startBirthdayJob(client);
-    console.log('[jobs] Background jobs iniciados (recordatorios cada 30s, giveaways cada 15s, cumpleaños diario a las 09:00).');
+    startHoneypotRotationJob(client);
+    console.log('[jobs] Background jobs iniciados (recordatorios cada 30s, giveaways cada 15s, cumpleaños diario a las 09:00, rotación de honeypot cada hora).');
 
     // El job de 24/7 vive en el módulo de música y se registra solo si hay
     // nodos de Lavalink configurados (musicManager devuelve null si no hay).
@@ -138,6 +140,45 @@ function startBirthdayJob(client) {
             console.error('[jobs] Error en birthday job:', err);
         }
     });
+}
+
+// Rotación del nombre de los canales señuelo: cada hora revisa qué guilds
+// tienen la rotación activada y renombrar los que hayan cumplido el plazo.
+function startHoneypotRotationJob(client) {
+    let running = false;
+    setInterval(async () => {
+        if (running) return;
+        running = true;
+        try {
+            const { Op } = require('sequelize');
+            const due = await HoneypotConfig.findAll({
+                where: { enabled: true, rotationHours: { [Op.gt]: 0 }, channelId: { [Op.ne]: null } },
+            });
+
+            for (const row of due) {
+                try {
+                    const last = row.lastRotationAt ? new Date(row.lastRotationAt).getTime() : 0;
+                    if (Date.now() - last < row.rotationHours * 60 * 60 * 1000) continue;
+
+                    const guild = client.guilds.cache.get(row.guildId);
+                    if (!guild) continue;
+
+                    const name = await rotateHoneypotChannel(guild, row.channelId);
+                    if (name) {
+                        row.lastRotationAt = new Date();
+                        await row.save().catch(() => {});
+                        console.log(`[honeypot] Canal rotado a «${name}» en ${guild.name} (${guild.id}).`);
+                    }
+                } catch (err) {
+                    console.error(`[jobs] Error rotando honeypot en ${row.guildId}:`, err.message);
+                }
+            }
+        } catch (err) {
+            console.error('[jobs] Error en honeypot rotation job:', err);
+        } finally {
+            running = false;
+        }
+    }, 60 * 60 * 1000);
 }
 
 module.exports = { start };

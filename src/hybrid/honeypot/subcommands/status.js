@@ -17,6 +17,9 @@ module.exports = {
         const lines = [
             `**Estado:** ${on(config.enabled)}`,
             `**Canal:** ${config.channelId ? `<#${config.channelId}>` : 'No asignado'}`,
+            `**Castigos aplicados:** ${config.caughtCount || 0}`,
+            `**Auto-purge:** ${on(config.autoPurge)}`,
+            `**Rotación:** ${config.rotationHours > 0 ? `cada ${config.rotationHours}h` : 'desactivada'}`,
             `**Acción:** \`${LABELS[config.action] || config.action}\``,
             config.action === 'timeout' ? `**Duración del silencio:** ${config.timeoutMinutes} minutos` : null,
         ].filter(Boolean);

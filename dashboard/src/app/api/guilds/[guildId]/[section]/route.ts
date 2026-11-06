@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { botPatch, BotApiError } from '@/lib/bot';
 import { getAdministeredGuild } from '@/lib/guilds';
 
-const ALLOWED_SECTIONS = new Set(['guild', 'automod', 'honeypot', 'antinuke', 'welcome']);
+const ALLOWED_SECTIONS = new Set(['guild', 'automod', 'honeypot', 'antinuke', 'welcome', 'levels', 'tickets', 'music', 'autorole']);
 const MAX_BODY_BYTES = 16 * 1024;
 
 type Params = { params: Promise<{ guildId: string; section: string }> };

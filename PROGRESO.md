@@ -1,7 +1,47 @@
 # Deyra — historial de etapas
 
-> La versión actual es la **2.2.0**, que corresponde a la **Etapa 11** (seguridad + dashboard),
+> La versión actual es la **2.3.0**, que corresponde a la **Etapa 12** (dashboard ampliado, honeypot con auto-creación y rotación),
 > al principio de este documento. Abajo está el historial desde la primera.
+
+## Etapa 12 (v2.3.0): dashboard ampliado y honeypot inteligente
+
+**Dashboard (Next.js)** — `dashboard/`:
+
+- Secciones nuevas: **Tickets** (título/descripción del panel, categoría,
+  canal de log, roles de soporte), **Niveles** (XP mín/máx, cooldown,
+  canal de anuncio, **recompensas por rol** con altas/bajas, canales sin XP),
+  **Autorole** (listas separadas para humanos y bots), **Música** (volumen,
+  autoplay, fairplay + rol, modo 24/7 con canales de voz/texto, límites),
+  y **General** ahora edita canales de sugerencias/confesiones/cumpleaños y
+  el modo NSFW del servidor.
+- **Temas oscuros conmutables** desde la barra lateral: Jade (default),
+  Ámbar, Medianoche y Ciruela. La preferencia persiste en el navegador.
+- Animaciones y micro-interacciones: entrada de páginas, stagger en tarjetas,
+  brillo en el CTA, pops en listas y toasts. Respetan `prefers-reduced-motion`.
+- Fix de overflow horizontal en móvil y favicon/logo propios (retrato de
+  Deyra) — la web respira el icono del bot.
+
+**Honeypot inteligente**:
+
+- **Auto-creación del canal señuelo** al activarlo sin canal asignado: se
+  crea con un nombre señuelo aleatorio y topic de «solo lectura». También
+  desde `/honeypot toggle activo:true`.
+- **Rotación automática del nombre** del canal señuelo cada N horas
+  (`/honeypot rotate <horas>`, 0–168; dashboard incluido) para que los bots
+  de raid no memoricen el patrón. Topic también rota. Corre en backgroundJobs.
+- **Auto-purge** (`/honeypot autopurge`): borra los mensajes recientes de
+  quien cae en el señuelo.
+- **`/honeypot stats`**: contador público de cuentas atrapadas
+  (`caughtCount`), última rotación, estado de purge/rotación.
+- Nuevas columnas: `autoPurge`, `rotationHours`, `caughtCount`,
+  `lastRotationAt` (auto-migración aditiva al arrancar).
+
+**Deploy**:
+
+- Bot en bot-hosting.net desde GitHub (auto-pull en restart). Dashboard en
+  Vercel como app Next.js con OAuth de Discord. Dominio público del bot en
+  `deyra.apps.bot-hosting.cloud` (la API admin autentica con Bearer y está
+  restringida por CORS a `DASHBOARD_ORIGIN`).
 
 ## Etapa 11 (v2.2.0): seguridad avanzada y dashboard web
 

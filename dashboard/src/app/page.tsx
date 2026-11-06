@@ -23,7 +23,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
           <Link href="/" className="wordmark" aria-label="Deyra, inicio">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="mark" src="/logo.png" alt="" width={34} height={34} />
-            <span className="word">Deyra<small>Guardiana de servidores</small></span>
+            <span className="word">Deyra</span>
           </Link>
           <nav className="nav-links" aria-label="Secciones">
             <a href="#servicio">El servicio</a>
@@ -51,7 +51,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 
         <section className="hero">
           <div>
-            <span className="eyebrow">Guardiana de servidores · 548 comandos</span>
+            <span className="eyebrow">548 comandos híbridos</span>
             <h1>Tu servidor, <em>en orden</em> antes de que arda.</h1>
             <p className="lede">
               Deyra modera, filtra y responde mientras tú vives: automod, honeypot,
@@ -64,7 +64,6 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
             </div>
             <p className="micro">
               <span>Instalación en 30 segundos</span>
-              <span>Sin cuenta</span>
               <span>Permisos mínimos</span>
             </p>
           </div>
@@ -189,17 +188,19 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 
       <div className="closing">
         <div className="inner">
-          <div>
-            <h2>Sellar este servidor.</h2>
-            <p>Añádela y en treinta segundos ordena el caos.</p>
+          <div className="closing-copy">
+            <span className="eyebrow-ink">Cierre</span>
+            <h2>Sellar tu servidor.</h2>
+            <p>Añádela y en treinta segundos el orden vuelve a reinar.</p>
+            <a className="btn-ink" href={ctaHref}>Añadir a Discord<ArrowRight size={17} aria-hidden="true" /></a>
           </div>
-          <a className="btn-ink" href={ctaHref}>Añadir a Discord<ArrowRight size={17} aria-hidden="true" /></a>
+          <span className="closing-mark" aria-hidden="true">D</span>
         </div>
       </div>
 
       <footer className="footer">
         <div className="inner">
-          <span>Deyra — la guardiana del orden.</span>
+          <span>Deyra — orden para tu servidor.</span>
           <span>No afiliada con Discord Inc. · Hecha en español.</span>
           <Link href="/dashboard">Abrir el panel</Link>
         </div>

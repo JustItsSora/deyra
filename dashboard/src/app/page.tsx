@@ -1,9 +1,12 @@
 import Link from 'next/link';
 import {
-  ArrowRight, ShieldCheck, Radar, Zap, DoorOpen, ScrollText, Settings2,
-  Lock, BadgeCheck, Server, ChevronRight, Users, AlertCircle,
+  Sparkles, ShieldCheck, Radar, Zap, DoorOpen, ScrollText, Settings2,
+  Lock, BadgeCheck, Server, ChevronRight, Users, AlertCircle, Gift, KeyRound,
 } from 'lucide-react';
 import { inviteUrl } from '@/lib/discord';
+import HeroStage from '@/components/HeroStage';
+import SoundToggle from '@/components/SoundToggle';
+import CountUp from '@/components/CountUp';
 
 const AUTH_MESSAGES: Record<string, string> = {
   denied: 'Cancelaste el inicio de sesión en Discord. Puedes volver a intentarlo cuando quieras.',
@@ -20,21 +23,24 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <header className="land-nav">
-        <Link href="/" className="brand" aria-label="Deyra — inicio">
-          <img className="brand-logo" src="/logo.png" alt="" width={32} height={32} />
-          <span className="brand-word">Deyra</span>
-        </Link>
-        <nav className="nav-links" aria-label="Secciones">
-          <a href="#funciones">Funciones</a>
-          <a href="#como-funciona">Cómo funciona</a>
-          <a href="#seguridad">Seguridad</a>
-        </nav>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <a className="btn btn-ghost btn-sm" href="/api/auth/login">Iniciar sesión</a>
-          <a className="btn btn-primary btn-sm" href={ctaHref}>Añadir a Discord</a>
-        </div>
-      </header>
+      <div className="land-top">
+        <header className="land-nav">
+          <Link href="/" className="brand" aria-label="Deyra — inicio">
+            <img className="brand-logo" src="/logo.png" alt="" width={34} height={40} />
+            <span className="brand-word">Deyra</span>
+          </Link>
+          <nav className="nav-links" aria-label="Secciones">
+            <a href="#funciones">Funciones</a>
+            <a href="#como-funciona">Cómo funciona</a>
+            <a href="#seguridad">Seguridad</a>
+          </nav>
+          <div className="nav-actions">
+            <SoundToggle />
+            <a className="btn btn-ghost btn-sm" href="/api/auth/login">Iniciar sesión</a>
+            <a className="btn btn-primary btn-sm" href={ctaHref}>Añadir a Discord</a>
+          </div>
+        </header>
+      </div>
 
       <main>
         {authMessage && (
@@ -46,7 +52,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
           </div>
         )}
         <section className="hero">
-          <div>
+          <div className="hero-text">
             <span className="kicker">Panel de control</span>
             <h1 className="display">Un servidor bajo control, sin memorizar comandos.</h1>
             <p className="lead">
@@ -57,34 +63,26 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
             </p>
             <div className="hero-ctas">
               <a className="btn btn-primary" href={ctaHref}>
+                <Sparkles size={17} aria-hidden="true" />
                 Añadir a Discord
-                <ArrowRight size={17} aria-hidden="true" />
               </a>
               <a className="btn btn-ghost" href="/api/auth/login">Iniciar sesión</a>
             </div>
-            <p className="micro"><Lock size={13} aria-hidden="true" /> OAuth oficial de Discord · Gratis · Solo administras lo que ya administras</p>
+            <p className="micro">
+              <span><Lock size={14} aria-hidden="true" />OAuth oficial de Discord</span>
+              <span><Gift size={14} aria-hidden="true" />Gratis</span>
+              <span><KeyRound size={14} aria-hidden="true" />Solo administras lo que ya administras</span>
+            </p>
           </div>
 
-          <div className="mock" aria-hidden="true">
-            <div className="mock-bar">
-              <span className="mock-dot" /><span className="mock-dot" /><span className="mock-dot" />
-              <span className="mock-title">Deyra · Automod</span>
-            </div>
-            <div className="mock-body">
-              <div className="mock-row"><span className="name"><ShieldCheck size={16} />Anti-invitaciones</span><span className="pill ok">Activo</span></div>
-              <div className="mock-row"><span className="name"><Zap size={16} />Anti-nuke (audit log)</span><span className="pill ok">Activo</span></div>
-              <div className="mock-row"><span className="name"><Radar size={16} />Honeypot en #free-gifts</span><span className="pill ok">Activo</span></div>
-              <div className="mock-row"><span className="name"><ScrollText size={16} />Registro de mensajes</span><span className="pill warn">Sin canal</span></div>
-            </div>
-            <div className="mock-foot">Cambios aplicados en vivo sobre la base de datos del bot.</div>
-          </div>
+          <HeroStage />
         </section>
 
         <div className="stats-strip" aria-label="En cifras">
           <div className="inner">
-            <div className="item"><b>548</b><span>comandos híbridos</span></div>
-            <div className="item"><b>31</b><span>tablas de datos</span></div>
-            <div className="item"><b>7</b><span>protecciones automáticas</span></div>
+            <div className="item"><b><CountUp value={548} duration={1400} /></b><span>comandos híbridos</span></div>
+            <div className="item"><b><CountUp value={31} duration={1400} /></b><span>tablas de datos</span></div>
+            <div className="item"><b><CountUp value={7} duration={1400} /></b><span>protecciones automáticas</span></div>
             <div className="item"><b>0 €</b><span>para siempre en el panel</span></div>
           </div>
         </div>
@@ -120,7 +118,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
               <h3>Registros</h3>
               <p>Canales de log para moderación, entradas/salidas y mensajes borrados o editados.</p>
             </article>
-            <article className="feature f-std">
+            <article className="feature f-wide">
               <div className="ic"><Settings2 size={20} aria-hidden="true" /></div>
               <h3>Ajustes generales</h3>
               <p>Prefijo, idioma y política de contenido del servidor, con validación en vivo.</p>
@@ -174,7 +172,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 
             <div className="card card-pad" aria-label="Requisitos">
               <span className="kicker">Lo que necesitas</span>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 560, marginTop: 10 }}>Nada que no tengas ya</h3>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 400, marginTop: 12 }}>Nada que no tengas ya</h3>
               <div style={{ display: 'grid', gap: 12, marginTop: 14 }}>
                 {[
                   { icon: Server, text: 'Deyra invitada a tu servidor (o el botón de arriba).' },
@@ -219,7 +217,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
       <footer className="land-footer">
         <div className="inner">
           <div className="brand" style={{ textDecoration: 'none' }}>
-            <img className="brand-logo" src="/logo.png" alt="" width={26} height={26} style={{ borderRadius: 7 }} />
+            <img className="brand-logo" src="/logo.png" alt="" width={34} height={40} />
             <span style={{ color: 'var(--muted)', fontSize: 13 }}>Deyra · Todo en uno para tu servidor</span>
           </div>
           <a className="btn btn-ghost btn-sm" href={ctaHref}>Añadir a Discord</a>

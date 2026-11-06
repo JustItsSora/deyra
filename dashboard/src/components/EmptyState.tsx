@@ -5,12 +5,19 @@ type EmptyStateProps = {
   title: string;
   children: React.ReactNode;
   action?: React.ReactNode;
+  /** Muestra el retrato atenuado en lugar del icono (bot sin respuesta). */
+  portrait?: boolean;
 };
 
-export default function EmptyState({ icon: Icon, title, children, action }: EmptyStateProps) {
+export default function EmptyState({ icon: Icon, title, children, action, portrait }: EmptyStateProps) {
   return (
     <div className="empty">
-      <Icon className="icon" strokeWidth={1.5} aria-hidden="true" />
+      {portrait ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className="empty-portrait" src="/logo.png" alt="" width={96} height={116} />
+      ) : (
+        <Icon className="icon" strokeWidth={1.5} aria-hidden="true" />
+      )}
       <h3>{title}</h3>
       <div>{children}</div>
       {action}

@@ -17,7 +17,7 @@ export default async function DashboardHome() {
   if (result.status === 'bot-offline') {
     return (
       <main className="content" style={{ paddingTop: 48 }}>
-        <EmptyState icon={ServerCrash} title="El bot no responde ahora mismo">
+        <EmptyState icon={ServerCrash} portrait title="El bot no responde ahora mismo">
           <p>El panel habla con Deyra para leer y guardar la configuración. Comprueba que el bot esté encendido y vuelve a intentarlo.</p>
           <div style={{ marginTop: 8 }}><Link className="btn btn-ghost btn-sm" href="/dashboard">Reintentar</Link></div>
         </EmptyState>
@@ -31,10 +31,17 @@ export default async function DashboardHome() {
 
   return (
     <main className="content" style={{ paddingTop: 28 }}>
-      <div className="page-head">
-        <h1>Hola, {session?.username}</h1>
-        <p>Elige un servidor para ver y editar su configuración. Solo aparecen los servidores donde tienes permisos de gestión y Deyra está presente.</p>
-      </div>
+      <header className="banner">
+        <div className="banner-copy">
+          <span className="kicker">Tus servidores</span>
+          <h1>Hola, {session?.username}</h1>
+          <p>Elige un servidor para ver y editar su configuración. Solo aparecen los servidores donde tienes permisos de gestión y Deyra está presente.</p>
+        </div>
+        <div className="banner-art" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/danica.jpg" alt="" width={736} height={736} />
+        </div>
+      </header>
 
       {present.length > 0 ? (
         <div className="guild-grid">

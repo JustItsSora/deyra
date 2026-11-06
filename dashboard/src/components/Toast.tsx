@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { play } from '@/lib/sound';
 
 export type ToastData = { kind: 'ok' | 'err'; text: string } | null;
 
@@ -14,6 +15,7 @@ export default function Toast({ toast, onDone }: { toast: ToastData; onDone: () 
       return;
     }
     setVisible(true);
+    play(toast.kind === 'ok' ? 'ok' : 'err');
     const t = setTimeout(() => {
       setVisible(false);
       onDone();

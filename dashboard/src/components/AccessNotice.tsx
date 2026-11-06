@@ -13,6 +13,7 @@ export default function AccessNotice(props: AccessNoticeProps) {
       <main className="content" style={{ paddingTop: 64 }}>
         <EmptyState
           icon={Bot}
+          portrait
           title="El bot no responde ahora mismo"
           action={<a className="btn btn-primary btn-sm" href=".">Reintentar</a>}
         >

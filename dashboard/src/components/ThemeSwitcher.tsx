@@ -3,16 +3,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, Palette } from 'lucide-react';
 
-export type ThemeId = 'jade' | 'ambar' | 'medianoche' | 'ciruela';
+export type ThemeId = 'danica' | 'jade' | 'ambar' | 'medianoche' | 'ciruela';
 
 const THEMES: { id: ThemeId; name: string; dot: string }[] = [
+  { id: 'danica', name: 'Danica', dot: '#52d6c8' },
   { id: 'jade', name: 'Jade', dot: '#5eb7ae' },
   { id: 'ambar', name: 'Ámbar', dot: '#d4a24e' },
   { id: 'medianoche', name: 'Medianoche', dot: '#7aa2f7' },
   { id: 'ciruela', name: 'Ciruela', dot: '#b48cf2' },
 ];
 
-const STORAGE_KEY = 'deyra-theme';
+const STORAGE_KEY = 'deyra-theme-v2';
 
 export function applyTheme(theme: ThemeId) {
   document.documentElement.dataset.theme = theme;
@@ -21,12 +22,12 @@ export function applyTheme(theme: ThemeId) {
 
 export default function ThemeSwitcher() {
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState<ThemeId>('jade');
+  const [theme, setTheme] = useState<ThemeId>('danica');
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const saved = (document.documentElement.dataset.theme || 'jade') as ThemeId;
-    setTheme(THEMES.some((t) => t.id === saved) ? saved : 'jade');
+    const saved = (document.documentElement.dataset.theme || 'danica') as ThemeId;
+    setTheme(THEMES.some((t) => t.id === saved) ? saved : 'danica');
 
     const onDocClick = (e: MouseEvent) => {
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);

@@ -14,7 +14,7 @@ export default function SaveBar({ visible, saving, onSave, onDiscard }: SaveBarP
 
   return (
     <div className="savebar" role="region" aria-label="Cambios sin guardar">
-      <span><strong>Cambios sin guardar</strong> <span className="muted">· se aplican al guardar</span></span>
+      <span><i className="gem" aria-hidden="true" /><strong>Cambios sin guardar</strong> <span className="muted">Se aplican al guardar</span></span>
       <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
         <button type="button" className="btn btn-ghost btn-sm" onClick={onDiscard} disabled={saving}>
           <Undo2 size={15} aria-hidden="true" />

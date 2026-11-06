@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import ThemeSwitcher from './ThemeSwitcher';
 import GuildIcon from './GuildIcon';
+import SoundToggle from './SoundToggle';
 
 export type SidebarGuild = {
   id: string;
@@ -67,9 +68,12 @@ export default function Sidebar({ guilds, currentGuildId, userName }: SidebarPro
           <img className="brand-logo" src="/logo.png" alt="" width={32} height={32} />
           <span className="brand-word">Deyra</span>
         </Link>
-        <a href="/api/auth/logout" className="side-link" style={{ padding: 8 }} aria-label="Cerrar sesión" title="Cerrar sesión">
-          <LogOut size={18} aria-hidden="true" />
-        </a>
+        <div className="side-actions">
+          <SoundToggle />
+          <a href="/api/auth/logout" className="icon-btn" aria-label="Cerrar sesión" title="Cerrar sesión">
+            <LogOut size={17} aria-hidden="true" />
+          </a>
+        </div>
       </div>
 
       <div className="switcher" ref={rootRef}>
@@ -132,7 +136,7 @@ export default function Sidebar({ guilds, currentGuildId, userName }: SidebarPro
       </nav>
 
       <ThemeSwitcher />
-      <div className="side-top" style={{ marginTop: 'auto', justifyContent: 'flex-start', padding: '8px 4px 0', borderTop: '1px solid var(--border)' }}>
+      <div className="side-top" style={{ marginTop: 'auto', justifyContent: 'flex-start', gap: 10, padding: '12px 4px 0', boxShadow: '0 -1px 0 var(--border)' }}>
         <UserRound size={18} aria-hidden="true" style={{ color: 'var(--muted)' }} />
         <span className="small muted" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName}</span>
       </div>

@@ -7,6 +7,7 @@ import {
 import { botGet, BotApiError } from '@/lib/bot';
 import AccessNotice from '@/components/AccessNotice';
 import StatusPill from '@/components/StatusPill';
+import CountUp from '@/components/CountUp';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,16 +56,23 @@ export default async function GuildOverview({ params }: { params: Promise<{ id: 
 
   return (
     <main className="content">
-      <div className="page-head">
-        <h1>{overview.name}</h1>
-        <p>Estado del servidor y accesos directos a cada sección de configuración.</p>
-      </div>
+      <header className="banner">
+        <div className="banner-copy">
+          <span className="kicker">Resumen del servidor</span>
+          <h1>{overview.name}</h1>
+          <p>Estado del servidor y accesos directos a cada sección de configuración.</p>
+        </div>
+        <div className="banner-art" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/danica.jpg" alt="" width={736} height={736} />
+        </div>
+      </header>
 
       <div className="stat-grid">
-        <div className="stat"><div className="k"><Users size={13} aria-hidden="true" style={{ verticalAlign: -2 }} /> Miembros</div><div className="v">{overview.memberCount?.toLocaleString('es') ?? '—'}</div></div>
-        <div className="stat"><div className="k"><Hash size={13} aria-hidden="true" style={{ verticalAlign: -2 }} /> Canales</div><div className="v">{overview.channelCount}</div></div>
-        <div className="stat"><div className="k"><ShieldUser size={13} aria-hidden="true" style={{ verticalAlign: -2 }} /> Roles</div><div className="v">{overview.roleCount}</div></div>
-        <div className="stat"><div className="k"><TriangleAlert size={13} aria-hidden="true" style={{ verticalAlign: -2 }} /> Infracciones 30d</div><div className="v">{overview.warnsLast30d ?? '—'}</div><div className="sub">quedan en /warnings</div></div>
+        <div className="stat"><div className="k"><Users size={14} aria-hidden="true" /> Miembros</div><div className="v">{overview.memberCount != null ? <CountUp value={overview.memberCount} /> : '—'}</div></div>
+        <div className="stat"><div className="k"><Hash size={14} aria-hidden="true" /> Canales</div><div className="v"><CountUp value={overview.channelCount} /></div></div>
+        <div className="stat"><div className="k"><ShieldUser size={14} aria-hidden="true" /> Roles</div><div className="v"><CountUp value={overview.roleCount} /></div></div>
+        <div className="stat"><div className="k"><TriangleAlert size={14} aria-hidden="true" /> Infracciones 30d</div><div className="v">{overview.warnsLast30d != null ? <CountUp value={overview.warnsLast30d} /> : '—'}</div><div className="sub">quedan en /warnings</div></div>
       </div>
 
       <section className="section-block" aria-label="Estado de las protecciones">

@@ -22,7 +22,10 @@ export default function GeneralForm({ guildId, initial, channels }: { guildId: s
 
   return (
     <>
-      <div className="card card-pad">
+      <section className="panel" aria-label="Comandos y canales">
+        <div className="panel-head"><div><h2 className="panel-title">Comandos y canales</h2>
+          <p className="panel-desc">Prefijo y canales donde Deyra publica.</p></div></div>
+        <div className="panel-body">
         <div className="setting-row">
           <span>
             <span className="label">Prefijo de comandos</span>
@@ -44,7 +47,7 @@ export default function GeneralForm({ guildId, initial, channels }: { guildId: s
             <span className="label">Canal de sugerencias</span>
             <span className="desc">Donde /suggest publica las ideas de los miembros.</span>
           </span>
-          <div style={{ minWidth: 210, maxWidth: 320, width: '100%' }}>
+          <div className="control">
             <Listbox value={state.suggestionsChannelId ?? NO_CHANNEL} options={ch} onChange={setChannel('suggestionsChannelId')} ariaLabel="Canal de sugerencias" />
           </div>
         </div>
@@ -54,7 +57,7 @@ export default function GeneralForm({ guildId, initial, channels }: { guildId: s
             <span className="label">Canal de confesiones</span>
             <span className="desc">Donde /confess publica confesiones anónimas.</span>
           </span>
-          <div style={{ minWidth: 210, maxWidth: 320, width: '100%' }}>
+          <div className="control">
             <Listbox value={state.confessionsChannelId ?? NO_CHANNEL} options={ch} onChange={setChannel('confessionsChannelId')} ariaLabel="Canal de confesiones" />
           </div>
         </div>
@@ -64,7 +67,7 @@ export default function GeneralForm({ guildId, initial, channels }: { guildId: s
             <span className="label">Canal de cumpleaños</span>
             <span className="desc">Felicita cumpleaños registrados con /birthday set.</span>
           </span>
-          <div style={{ minWidth: 210, maxWidth: 320, width: '100%' }}>
+          <div className="control">
             <Listbox value={state.birthdayChannelId ?? NO_CHANNEL} options={ch} onChange={setChannel('birthdayChannelId')} ariaLabel="Canal de cumpleaños" />
           </div>
         </div>
@@ -77,6 +80,7 @@ export default function GeneralForm({ guildId, initial, channels }: { guildId: s
           <Toggle checked={state.nsfw} onChange={(v) => update('nsfw', v)} label="Modo NSFW" />
         </div>
       </div>
+      </section>
 
       {state.nsfw && (
         <div className="callout danger mt" role="alert">

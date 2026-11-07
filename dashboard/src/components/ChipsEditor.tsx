@@ -47,7 +47,6 @@ export default function ChipsEditor({ values, onChange, placeholder, ariaLabel, 
       <div className="chip-add">
         <input
           className="input"
-          style={{ maxWidth: 280 }}
           value={draft}
           placeholder={placeholder}
           aria-label={ariaLabel}

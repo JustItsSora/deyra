@@ -159,7 +159,7 @@ export default function Listbox({
             >
               <span>
                 {opt.label}
-                {opt.hint && <span className="muted small" style={{ display: 'block' }}>{opt.hint}</span>}
+                {opt.hint && <span className="listbox-hint">{opt.hint}</span>}
               </span>
               <Check className="check" aria-hidden="true" />
             </button>

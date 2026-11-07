@@ -2,6 +2,7 @@ import { getSection, getChannels, getRoles } from '@/lib/loadConfig';
 import AccessNotice from '@/components/AccessNotice';
 import MusicaForm from './MusicaForm';
 import type { MusicSection } from '@/lib/types';
+import PageHead from '@/components/PageHead';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Música' };
@@ -17,10 +18,7 @@ export default async function MusicaPage({ params }: { params: Promise<{ id: str
 
   return (
     <main className="content">
-      <div className="page-head">
-        <h1>Música</h1>
-        <p>Volumen, autoplay, fairplay, modo 24/7 y límites del reproductor.</p>
-      </div>
+      <PageHead title="Música" description="Volumen, autoplay, fairplay, modo 24/7 y límites del reproductor." />
       <MusicaForm guildId={id} initial={music} channels={channels} roles={roles} />
     </main>
   );

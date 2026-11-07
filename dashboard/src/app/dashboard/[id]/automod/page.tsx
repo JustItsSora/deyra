@@ -1,6 +1,7 @@
 import { getBundleConfig, getChannels, getRoles } from '@/lib/loadConfig';
 import AccessNotice from '@/components/AccessNotice';
 import AutomodForm from './AutomodForm';
+import PageHead from '@/components/PageHead';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Automod' };
@@ -12,10 +13,7 @@ export default async function AutomodPage({ params }: { params: Promise<{ id: st
 
   return (
     <main className="content">
-      <div className="page-head">
-        <h1>Automod</h1>
-        <p>Filtro automático de mensajes y ediciones. Desactiva protecciones sueltas o el conjunto completo arriba.</p>
-      </div>
+      <PageHead title="Automod" description="Filtro automático de mensajes y ediciones. Desactiva protecciones sueltas o el conjunto completo arriba." />
       <AutomodForm guildId={id} initial={bundle.automod} channels={channels} roles={roles} />
     </main>
   );

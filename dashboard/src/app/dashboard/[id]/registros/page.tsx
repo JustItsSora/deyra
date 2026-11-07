@@ -1,6 +1,7 @@
 import { getBundleConfig, getChannels, getRoles } from '@/lib/loadConfig';
 import AccessNotice from '@/components/AccessNotice';
 import RegistrosForm from './RegistrosForm';
+import PageHead from '@/components/PageHead';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Registros' };
@@ -12,10 +13,7 @@ export default async function RegistrosPage({ params }: { params: Promise<{ id: 
 
   return (
     <main className="content">
-      <div className="page-head">
-        <h1>Registros</h1>
-        <p>Dónde publica Deyra cada tipo de evento. Elige un canal o deja «Sin canal» para desactivarlo.</p>
-      </div>
+      <PageHead title="Registros" description="Dónde publica Deyra cada tipo de evento. Elige un canal o deja «Sin canal» para desactivarlo." />
       <RegistrosForm guildId={id} initial={bundle.guild} channels={channels} roles={roles} />
     </main>
   );

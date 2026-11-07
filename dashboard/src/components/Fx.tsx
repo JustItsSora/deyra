@@ -15,7 +15,7 @@ export default function Fx() {
       if (forced === 'none') return;
       const kind: SoundKind = (forced as SoundKind | undefined)
         ?? (el.matches('.listbox-trigger,.switcher-btn,summary') ? 'open'
-          : el.matches('.side-link,.guild-card,.nav-links a,.brand') ? 'nav' : 'click');
+          : el.matches('.side-link,.quick-card,.feature-card,.guild-card,.nav-links a,.brand') ? 'nav' : 'click');
       play(kind);
     };
 

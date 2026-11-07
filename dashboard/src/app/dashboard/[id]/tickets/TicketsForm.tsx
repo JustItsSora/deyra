@@ -32,7 +32,10 @@ export default function TicketsForm({
 
   return (
     <>
-      <div className="card card-pad">
+      <section className="panel" aria-label="Panel">
+        <div className="panel-head"><div><h2 className="panel-title">Panel</h2>
+          <p className="panel-desc">Título, descripción y dónde se publica el panel de soporte.</p></div></div>
+        <div className="panel-body">
         <div className="field">
           <label className="label" htmlFor="panelTitle">Título del panel</label>
           <input
@@ -78,7 +81,7 @@ export default function TicketsForm({
 
         <div className="field mt">
           <span className="label">Canal de logs de tickets</span>
-          <div style={{ maxWidth: 420 }}>
+          <div className="control-xl">
             <Listbox
               value={state.logChannelId ?? NO_CHANNEL}
               options={textChannels}
@@ -108,11 +111,13 @@ export default function TicketsForm({
           </span>
           <span className="pill">{state.ticketCounter}</span>
         </div>
-      </div>
+        </div>
+      </section>
 
-      <section className="section-block" aria-label="Equipo de soporte">
-        <h2>Equipo de soporte</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Equipo de soporte">
+        <div className="panel-head"><div><h2 className="panel-title">Equipo de soporte</h2>
+          <p className="panel-desc">Quiénes ven y responden los tickets.</p></div></div>
+        <div className="panel-body">
           <p className="hint" style={{ marginBottom: 12 }}>Estos roles ven y responden los tickets. Se aplican al panel recién publicado.</p>
           <Checklist
             items={supportRoles}

@@ -1,6 +1,7 @@
 import { getBundleConfig, getChannels } from '@/lib/loadConfig';
 import AccessNotice from '@/components/AccessNotice';
 import WelcomeForm from './WelcomeForm';
+import PageHead from '@/components/PageHead';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Bienvenidas' };
@@ -12,10 +13,7 @@ export default async function WelcomePage({ params }: { params: Promise<{ id: st
 
   return (
     <main className="content">
-      <div className="page-head">
-        <h1>Bienvenidas y despedidas</h1>
-        <p>Mensaje, canal y tarjeta cuando alguien entra o sale. Los cambios se aplican al instante.</p>
-      </div>
+      <PageHead title="Bienvenidas y despedidas" description="Mensaje, canal y tarjeta cuando alguien entra o sale. Los cambios se aplican al instante." />
       <WelcomeForm guildId={id} initial={bundle.welcome} channels={channels} />
     </main>
   );

@@ -2,6 +2,7 @@ import { getSection, getChannels, getRoles } from '@/lib/loadConfig';
 import AccessNotice from '@/components/AccessNotice';
 import LevelsForm from './LevelsForm';
 import type { LevelsSection } from '@/lib/types';
+import PageHead from '@/components/PageHead';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Niveles' };
@@ -17,10 +18,7 @@ export default async function LevelsPage({ params }: { params: Promise<{ id: str
 
   return (
     <main className="content">
-      <div className="page-head">
-        <h1>Niveles y XP</h1>
-        <p>Cuánto XP ganan, dónde se anuncia y qué roles se otorgan solos al subir de nivel.</p>
-      </div>
+      <PageHead title="Niveles y XP" description="Cuánto XP ganan, dónde se anuncia y qué roles se otorgan solos al subir de nivel." />
       <LevelsForm guildId={id} initial={levels} channels={channels} roles={roles} />
     </main>
   );

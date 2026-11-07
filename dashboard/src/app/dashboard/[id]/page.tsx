@@ -7,9 +7,10 @@ import {
 import { botGet, BotApiError } from '@/lib/bot';
 import AccessNotice from '@/components/AccessNotice';
 import StatusPill from '@/components/StatusPill';
-import CountUp from '@/components/CountUp';
+import PageHead from '@/components/PageHead';
 
 export const dynamic = 'force-dynamic';
+export const metadata = { title: 'Resumen' };
 
 type Overview = {
   id: string;
@@ -35,10 +36,10 @@ export default async function GuildOverview({ params }: { params: Promise<{ id: 
   }
   if (!overview) return <AccessNotice kind="bot-offline" />;
 
-  const securityItems = [
-    { href: '/automod', icon: ShieldCheck, name: 'Automod', on: overview.security.automod, onText: 'Activo', offText: 'Desactivado' },
-    { href: '/honeypot', icon: Radar, name: 'Honeypot', on: overview.security.honeypot, onText: 'Activo', offText: 'Desactivado' },
-    { href: '/seguridad', icon: Zap, name: 'Anti-nuke', on: overview.security.antinuke, onText: 'Activo', offText: 'Desactivado' },
+  const protectionItems = [
+    { href: '/automod', icon: ShieldCheck, name: 'Automod', desc: 'Filtro de spam, enlaces, menciones y mayúsculas', on: overview.security.automod, onText: 'Activo', offText: 'Desactivado' },
+    { href: '/honeypot', icon: Radar, name: 'Honeypot', desc: 'Canal señuelo para atrapar raids y bots', on: overview.security.honeypot, onText: 'Activo', offText: 'Desactivado' },
+    { href: '/seguridad', icon: Zap, name: 'Anti-nuke', desc: 'Vigilancia del audit log contra ráfagas destructivas', on: overview.security.antinuke, onText: 'Activo', offText: 'Desactivado' },
   ];
 
   const quickLinks = [
@@ -56,33 +57,46 @@ export default async function GuildOverview({ params }: { params: Promise<{ id: 
 
   return (
     <main className="content">
-      <header className="page-head">
-        <span className="kicker">Resumen del servidor</span>
-        <h1>{overview.name}</h1>
-        <p>Estado del servidor y accesos directos a cada sección de configuración.</p>
-      </header>
+      <PageHead title={overview.name} description="Estado del servidor y accesos directos a cada sección de configuración." />
 
-      <div className="stat-grid">
-        <div className="stat"><div className="k"><Users size={14} aria-hidden="true" /> Miembros</div><div className="v">{overview.memberCount != null ? <CountUp value={overview.memberCount} /> : '—'}</div></div>
-        <div className="stat"><div className="k"><Hash size={14} aria-hidden="true" /> Canales</div><div className="v"><CountUp value={overview.channelCount} /></div></div>
-        <div className="stat"><div className="k"><ShieldUser size={14} aria-hidden="true" /> Roles</div><div className="v"><CountUp value={overview.roleCount} /></div></div>
-        <div className="stat"><div className="k"><TriangleAlert size={14} aria-hidden="true" /> Infracciones 30d</div><div className="v">{overview.warnsLast30d != null ? <CountUp value={overview.warnsLast30d} /> : '—'}</div><div className="sub">quedan en /warnings</div></div>
+      <div className="metrics">
+        <div className="metric">
+          <div className="k"><Users size={14} aria-hidden="true" /> Miembros</div>
+          <div className="v">{overview.memberCount != null ? overview.memberCount.toLocaleString('es') : '—'}</div>
+        </div>
+        <div className="metric">
+          <div className="k"><Hash size={14} aria-hidden="true" /> Canales</div>
+          <div className="v">{overview.channelCount}</div>
+        </div>
+        <div className="metric">
+          <div className="k"><ShieldUser size={14} aria-hidden="true" /> Roles</div>
+          <div className="v">{overview.roleCount}</div>
+        </div>
+        <div className="metric">
+          <div className="k"><TriangleAlert size={14} aria-hidden="true" /> Infracciones 30d</div>
+          <div className="v">{overview.warnsLast30d != null ? overview.warnsLast30d : '—'}</div>
+          <div className="sub">quedan en /warnings</div>
+        </div>
       </div>
 
-      <section className="section-block" aria-label="Estado de las protecciones">
-        <h2>Protecciones</h2>
-        <div className="card card-pad" style={{ display: 'grid', gap: 4 }}>
-          {securityItems.map(({ href, icon: Icon, name, on, onText, offText }) => (
-            <Link key={href} href={`/dashboard/${id}${href}`} className="setting-row" style={{ textDecoration: 'none', color: 'inherit', borderRadius: 'var(--radius-md)' }}>
-              <span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 650 }}>
-                  <Icon size={18} aria-hidden="true" style={{ color: on ? 'var(--ok)' : 'var(--faint)' }} />
-                  {name}
-                </span>
+      <section className="panel" aria-label="Protecciones">
+        <div className="panel-head">
+          <div>
+            <h2 className="panel-title">Protecciones</h2>
+            <p className="panel-desc">Las tres que arruinan un servidor: vigiladas y aplicadas.</p>
+          </div>
+        </div>
+        <div className="panel-body">
+          {protectionItems.map(({ href, icon: Icon, name, desc, on, onText, offText }) => (
+            <Link key={href} href={`/dashboard/${id}${href}`} className="protect-row">
+              <span className={`row-icon${on ? ' on' : ''}`}><Icon size={17} aria-hidden="true" /></span>
+              <span className="row-main">
+                <span className="row-name">{name}</span>
+                <span className="row-desc">{desc}</span>
               </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span className="row-side">
                 <StatusPill state={on ? 'ok' : 'off'} okText={onText} offText={offText} />
-                <ChevronRight size={16} aria-hidden="true" className="muted" />
+                <ChevronRight size={16} className="muted" aria-hidden="true" />
               </span>
             </Link>
           ))}
@@ -91,14 +105,12 @@ export default async function GuildOverview({ params }: { params: Promise<{ id: 
 
       <section className="section-block" aria-label="Secciones">
         <h2>Configurar</h2>
-        <div className="guild-grid" style={{ marginTop: 8 }}>
+        <div className="quick-grid">
           {quickLinks.map(({ href, icon: Icon, label, desc }) => (
-            <Link key={href} href={`/dashboard/${id}${href}`} className="guild-card" aria-label={`Ir a ${label}`}>
-              <span className="guild-icon" style={{ width: 44, height: 44, fontSize: 0 }}><Icon size={20} aria-hidden="true" /></span>
-              <span style={{ minWidth: 0 }}>
-                <span className="gname">{label}</span>
-                <span className="grole">{desc}</span>
-              </span>
+            <Link key={href} href={`/dashboard/${id}${href}`} className="quick-card" aria-label={`Ir a ${label}`}>
+              <Icon size={19} aria-hidden="true" />
+              <span className="quick-name">{label}</span>
+              <span className="quick-desc">{desc}</span>
             </Link>
           ))}
         </div>

@@ -29,7 +29,10 @@ export default function WelcomeForm({
 
   return (
     <>
-      <div className="card card-pad">
+      <section className="panel" aria-label="Bienvenidas">
+        <div className="panel-head"><div><h2 className="panel-title">Bienvenidas</h2>
+          <p className="panel-desc">Mensaje al entrar al servidor.</p></div></div>
+        <div className="panel-body">
         <div className="setting-row">
           <span>
             <span className="label">Bienvenidas activas</span>
@@ -43,7 +46,7 @@ export default function WelcomeForm({
             <span className="label">Canal de bienvenida</span>
             <span className="desc">Dónde se publica la bienvenida.</span>
           </span>
-          <div style={{ minWidth: 210, maxWidth: 320, width: '100%' }}>
+          <div className="control">
             <Listbox
               value={state.welcomeChannelId ?? NO_CHANNEL}
               options={channelList}
@@ -64,11 +67,13 @@ export default function WelcomeForm({
           />
           <span className="hint">Variables: <code>{'{user}'}</code> menciona al miembro, <code>{'{server}'}</code> el nombre del servidor, <code>{'{membercount}'}</code> el número de miembros.</span>
         </div>
-      </div>
+        </div>
+      </section>
 
-      <section className="section-block" aria-label="Despedidas">
-        <h2>Despedidas</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Despedidas">
+        <div className="panel-head"><div><h2 className="panel-title">Despedidas</h2>
+          <p className="panel-desc">Mensaje cuando alguien se marcha del servidor.</p></div></div>
+        <div className="panel-body">
           <div className="setting-row">
             <span>
               <span className="label">Despedidas activas</span>
@@ -82,7 +87,7 @@ export default function WelcomeForm({
               <span className="label">Canal de despedida</span>
               <span className="desc">Vacío = usar el mismo canal de bienvenida.</span>
             </span>
-            <div style={{ minWidth: 210, maxWidth: 320, width: '100%' }}>
+            <div className="control">
               <Listbox
                 value={state.leaveChannelId ?? NO_CHANNEL}
                 options={channelList}
@@ -108,7 +113,7 @@ export default function WelcomeForm({
 
       <div className="callout mt" role="note">
         <Info className="icon" aria-hidden="true" />
-        <span>Los autorroles se configuran en <Link href={`/dashboard/${guildId}/autorole`} style={{ color: 'var(--accent-hover)' }}>Autorole</Link>, en este mismo panel.</span>
+        <span>Los autorroles se configuran en <Link href={`/dashboard/${guildId}/autorole`} className="text-link">Autorole</Link>, en este mismo panel.</span>
       </div>
 
       <SaveBar visible={dirty} saving={saving} onSave={save} onDiscard={discard} />

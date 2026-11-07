@@ -2,6 +2,7 @@ import { getSection, getChannels, getRoles } from '@/lib/loadConfig';
 import AccessNotice from '@/components/AccessNotice';
 import TicketsForm from './TicketsForm';
 import type { TicketsSection } from '@/lib/types';
+import PageHead from '@/components/PageHead';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Tickets' };
@@ -17,10 +18,7 @@ export default async function TicketsPage({ params }: { params: Promise<{ id: st
 
   return (
     <main className="content">
-      <div className="page-head">
-        <h1>Tickets</h1>
-        <p>Categoría, equipo de soporte, panel y mensaje de bienvenida del sistema de soporte.</p>
-      </div>
+      <PageHead title="Tickets" description="Categoría, equipo de soporte, panel y mensaje de bienvenida del sistema de soporte." />
       <TicketsForm guildId={id} initial={tickets} channels={channels} roles={roles} />
     </main>
   );

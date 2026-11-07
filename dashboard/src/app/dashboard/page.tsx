@@ -5,6 +5,7 @@ import { getAdministeredGuilds } from '@/lib/guilds';
 import { inviteUrl, guildIconUrl } from '@/lib/discord';
 import GuildIcon from '@/components/GuildIcon';
 import EmptyState from '@/components/EmptyState';
+import PageHead from '@/components/PageHead';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,11 +32,11 @@ export default async function DashboardHome() {
 
   return (
     <main className="content" style={{ paddingTop: 28 }}>
-      <header className="page-head">
-        <span className="kicker">Tus servidores</span>
-        <h1>Hola, {session?.username}</h1>
-        <p>Elige un servidor para ver y editar su configuración. Solo aparecen los servidores donde tienes permisos de gestión y Deyra está presente.</p>
-      </header>
+      <PageHead
+        title={`Hola, ${session?.username ?? 'tú'}`}
+        description="Elige un servidor para ver y editar su configuración. Solo aparecen los servidores donde tienes permisos de gestión y Deyra está presente."
+        status={result.status === 'ok' ? 'online' : 'offline'}
+      />
 
       {present.length > 0 ? (
         <div className="guild-grid">
@@ -62,12 +63,12 @@ export default async function DashboardHome() {
             {missing.map((g) => {
               const invite = inviteUrl(g.id);
               return (
-                <div key={g.id} className="guild-card" style={{ cursor: 'default' }}>
+                <div key={g.id} className="guild-card is-static">
                   <GuildIcon name={g.name} iconUrl={guildIconUrl(g)} size={56} />
                   <span style={{ minWidth: 0, flex: 1 }}>
                     <span className="gname" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</span>
                     {invite && (
-                      <a className="grole" href={invite} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-hover)', textDecoration: 'none' }}>
+                      <a className="grole text-accent" href={invite} target="_blank" rel="noreferrer">
                         <Wand2 size={13} aria-hidden="true" /> Invitar a Deyra
                       </a>
                     )}

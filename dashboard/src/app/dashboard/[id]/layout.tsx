@@ -4,6 +4,7 @@ import { getAdministeredGuilds } from '@/lib/guilds';
 import { inviteUrl, guildIconUrl, userAvatarUrl } from '@/lib/discord';
 import Sidebar, { type SidebarGuild } from '@/components/Sidebar';
 import AccessNotice from '@/components/AccessNotice';
+import { BotStatusProvider } from '@/components/BotStatusProvider';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +50,9 @@ export default async function GuildLayout({ children, params }: LayoutProps) {
         userName={session?.username ?? 'tú'}
         userAvatarUrl={session ? userAvatarUrl({ id: session.sub, avatar: session.avatar }) : null}
       />
-      {children}
+      <BotStatusProvider status={guild.botPresent ? 'online' : 'offline'}>
+        {children}
+      </BotStatusProvider>
     </div>
   );
 }

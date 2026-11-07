@@ -1,6 +1,7 @@
 import { getBundleConfig, getChannels } from '@/lib/loadConfig';
 import AccessNotice from '@/components/AccessNotice';
 import HoneypotForm from './HoneypotForm';
+import PageHead from '@/components/PageHead';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Honeypot' };
@@ -12,10 +13,7 @@ export default async function HoneypotPage({ params }: { params: Promise<{ id: s
 
   return (
     <main className="content">
-      <div className="page-head">
-        <h1>Honeypot</h1>
-        <p>Un canal señuelo para bots de raid y spammers automáticos. Quien escribe ahí, no vuelve.</p>
-      </div>
+      <PageHead title="Honeypot" description="Un canal señuelo para bots de raid y spammers automáticos. Quien escribe ahí, no vuelve." />
       <HoneypotForm guildId={id} initial={bundle.honeypot} channels={channels} />
     </main>
   );

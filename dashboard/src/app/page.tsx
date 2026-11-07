@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Plus, ShieldCheck, Radar, ShieldAlert, Ticket } from 'lucide-react';
+import { ArrowRight, Plus, Ban, ShieldCheck, Radar, ShieldAlert, Ticket, TrendingUp } from 'lucide-react';
 import { inviteUrl } from '@/lib/discord';
 import SoundToggle from '@/components/SoundToggle';
 
@@ -9,6 +9,15 @@ const AUTH_MESSAGES: Record<string, string> = {
   error: 'Discord no pudo completar el inicio de sesión. Inténtalo de nuevo.',
   config: 'El panel aún no tiene credenciales OAuth configuradas (DISCORD_CLIENT_ID / DISCORD_REDIRECT_URI).',
 };
+
+const FEATURES = [
+  { icon: Ban, name: 'Moderación con memoria', line: 'Ban, kick, warn, lockdown y purge con registro en el canal que tú elijas.', cmd: '/ban' },
+  { icon: ShieldCheck, name: 'Automod que entiende el contexto', line: 'Invites, enlaces con lista blanca, spam por frecuencia o duplicado, menciones con roles y @everyone, mayúsculas y palabras con límites de palabra.', cmd: '/automod' },
+  { icon: Radar, name: 'Honeypot con trampa giratoria', line: 'Un canal señuelo con el nombre cambiando solo: el bot de raid que escribe ahí no vuelve.', cmd: '/honeypot' },
+  { icon: ShieldAlert, name: 'Anti-nuke sobre el audit log', line: 'Borrados masivos de canales, roles o baneos: detecta la ráfaga y la corta antes de que arrase.', cmd: '/antinuke' },
+  { icon: Ticket, name: 'Tickets de verdad', line: 'Panel con categorías, equipo de soporte y cierre con transcripción al archivar.', cmd: '/ticket' },
+  { icon: TrendingUp, name: 'Niveles que sirven', line: 'XP por participar y recompensas por rol, sin grind falso ni ranking inflado.', cmd: '/level' },
+];
 
 export default async function LandingPage({ searchParams }: { searchParams: Promise<{ auth?: string }> }) {
   const { auth } = await searchParams;
@@ -22,7 +31,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         <div className="inner">
           <Link href="/" className="wordmark" aria-label="Deyra, inicio">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="mark" src="/logo.png" alt="" width={34} height={34} />
+            <img className="mark" src="/logo.png" alt="" width={28} height={28} />
             <span className="word">Deyra</span>
           </Link>
           <nav className="nav-links" aria-label="Secciones">
@@ -50,8 +59,8 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         )}
 
         <section className="hero">
-          <div>
-            <span className="eyebrow">548 comandos, slash y prefijo</span>
+          <div className="hero-copy">
+            <span className="kicker">548 comandos, slash y prefijo</span>
             <h1>Tu servidor, <em>en orden</em> antes de que arda.</h1>
             <p className="lede">
               Deyra modera, filtra y responde mientras tú vives: automod, honeypot,
@@ -81,81 +90,44 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
           <span><b>0 €</b> para siempre</span>
         </div>
 
-        <section className="ledger" id="servicio" aria-label="Lo que hace">
-          <span className="eyebrow">El servicio</span>
-          <h2>Lo que hace, sin letra pequeña.</h2>
-          <p className="sub">Cada línea es un sistema que ya está corriendo hoy. Lo que lees es exactamente lo que hace: ni roadmap ni relleno.</p>
+        <section className="section" id="servicio" aria-label="Lo que hace">
+          <span className="kicker">El servicio</span>
+          <h2 className="section-title">Lo que hace, sin letra pequeña.</h2>
+          <p className="section-sub">Cada tarjeta es un sistema que ya está corriendo hoy. Lo que lees es exactamente lo que hace: ni roadmap ni relleno.</p>
 
-          <div className="ledger-rows">
-            <a className="row" href="#panel">
-              <span className="num">01</span>
-              <span><span className="name">Moderación con memoria</span><span className="line">Ban, kick, warn, lockdown y purge con registro en el canal que tú elijas.</span></span>
-              <span className="cmd">/ban</span>
-            </a>
-            <a className="row" href="#panel">
-              <span className="num">02</span>
-              <span><span className="name">Automod que entiende el contexto</span><span className="line">Invites, enlaces con lista blanca, spam por frecuencia o duplicado, menciones con roles y @everyone, mayúsculas y palabras con límites de palabra.</span></span>
-              <span className="cmd">/automod</span>
-            </a>
-            <a className="row" href="#panel">
-              <span className="num">03</span>
-              <span><span className="name">Honeypot con trampa giratoria</span><span className="line">Un canal señuelo con el nombre cambiando solo: el bot de raid que escribe ahí no vuelve.</span></span>
-              <span className="cmd">/honeypot</span>
-            </a>
-            <a className="row" href="#panel">
-              <span className="num">04</span>
-              <span><span className="name">Anti-nuke sobre el audit log</span><span className="line">Borrados masivos de canales, roles o baneos: detecta la ráfaga y la corta antes de que arrase.</span></span>
-              <span className="cmd">/antinuke</span>
-            </a>
-            <a className="row" href="#panel">
-              <span className="num">05</span>
-              <span><span className="name">Tickets de verdad</span><span className="line">Panel con categorías, equipo de soporte y cierre con transcripción al archivar.</span></span>
-              <span className="cmd">/ticket</span>
-            </a>
-            <a className="row" href="#panel">
-              <span className="num">06</span>
-              <span><span className="name">Niveles que sirven</span><span className="line">XP por participar y recompensas por rol, sin grind falso ni ranking inflado.</span></span>
-              <span className="cmd">/level</span>
-            </a>
+          <div className="feature-grid">
+            {FEATURES.map(({ icon: Icon, name, line, cmd }) => (
+              <a key={name} className="feature-card" href="#panel">
+                <Icon className="feature-icon" size={22} aria-hidden="true" />
+                <span className="feature-name">{name}</span>
+                <span className="feature-desc">{line}</span>
+                <code className="feature-cmd">{cmd}</code>
+              </a>
+            ))}
           </div>
         </section>
 
-        <section className="panel-wrap" id="panel" aria-label="El panel">
-          <div className="panel-copy">
-            <span className="eyebrow">El panel</span>
-            <h2>El bot, por dentro y sin disfraces.</h2>
-            <p>
-              La misma configuración que leen los comandos, en vivo. Cuando guardas en el
-              panel, el bot ya lo está haciendo: respuesta instantánea, sin reinicios ni
-              copiar IDs.
-            </p>
-            <ul className="panel-list">
-              <li>Solo quienes pueden administrar el servidor lo ven.</li>
-              <li>Cada guardado pasa la misma validación que un comando real.</li>
-              <li>Tus datos viven en tu instancia del bot, no en un tercero.</li>
-            </ul>
-            <Link className="text-link" href="/dashboard">Abrir el panel <ArrowRight size={16} aria-hidden="true" style={{ verticalAlign: -2 }} /></Link>
-          </div>
-
-          <div className="plate" aria-label="Vista esquemática del panel">
-            <div className="plate-bar">
-              <span className="plate-title">Panel · Automod</span>
-              <span className="pill ok">En vivo</span>
-            </div>
-            <div className="plate-body">
-              <div className="prow"><span><b>Automod</b> · invites, links con allowlist</span><span className="sw" aria-hidden="true"><i /></span></div>
-              <div className="prow"><span><b>Honeypot</b> · #free-gifts · rotación automática</span><span className="ok">Activo</span></div>
-              <div className="prow"><span><b>Anti-nuke</b> · umbral 3 / 10 min</span><span className="ok">Activo</span></div>
-              <div className="prow"><span><b>Tickets</b> · categoría Soporte</span><span className="warn">2 abiertos</span></div>
-              <div className="prow"><span><b>Registro</b> · #modlog · mensajes y miembros</span><span className="ok">Activo</span></div>
-              <div className="plate-foot"><span className="ok">Guardado</span><span>· el bot ya aplica los cambios</span></div>
-            </div>
-          </div>
+        <section className="section" id="panel" aria-label="El panel">
+          <span className="kicker">El panel</span>
+          <h2 className="section-title">El bot, por dentro y sin disfraces.</h2>
+          <p className="section-sub">
+            La misma configuración que leen los comandos, en vivo. Cuando guardas en el
+            panel, el bot ya lo está haciendo: respuesta instantánea, sin reinicios ni
+            copiar IDs.
+          </p>
+          <ul className="panel-list">
+            <li>Solo quienes pueden administrar el servidor lo ven.</li>
+            <li>Cada guardado pasa la misma validación que un comando real.</li>
+            <li>Tus datos viven en tu instancia del bot, no en un tercero.</li>
+          </ul>
+          <Link className="text-link panel-cta" href="/dashboard">
+            Abrir el panel <ArrowRight size={16} aria-hidden="true" />
+          </Link>
         </section>
 
         <section className="oath" id="garantia" aria-label="Garantía">
           <div className="oath-head">
-            <span className="eyebrow">Garantía</span>
+            <span className="kicker">Garantía</span>
             <p className="big">No toca tu cuenta.<br />Toca <em>tu servidor.</em></p>
           </div>
           <div className="oath-clauses">
@@ -175,8 +147,8 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         </section>
 
         <section className="faq" id="preguntas" aria-label="Preguntas">
-          <span className="eyebrow">Preguntas</span>
-          <h2>Antes de añadirla.</h2>
+          <span className="kicker">Preguntas</span>
+          <h2 className="section-title">Antes de añadirla.</h2>
           <details>
             <summary>¿Cuánto cuesta?<Plus size={16} className="chev" aria-hidden="true" /></summary>
             <p>Nada. Es gratis, y tus datos viven en el servidor del bot.</p>
@@ -199,36 +171,29 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
       <div className="closing">
         <div className="inner">
           <div className="closing-copy">
-            <span className="eyebrow">Empezar</span>
+            <span className="kicker">Empezar</span>
             <h2>Pon tu servidor en orden.</h2>
             <p>Gratis, sin tarjeta. Se instala en menos de un minuto y se configura desde el panel.</p>
             <a className="btn btn-primary" href={ctaHref}>Añadir a Discord<ArrowRight size={15} aria-hidden="true" /></a>
           </div>
-          <div className="closing-aside">
-            <span className="cap">Incluye</span>
-            <ul>
-              <li>
-                <ShieldCheck size={20} aria-hidden="true" />
-                <span className="m">Automod</span>
-                <span className="d">Filtra spam, enlaces y menciones.</span>
-              </li>
-              <li>
-                <Radar size={20} aria-hidden="true" />
-                <span className="m">Honeypot</span>
-                <span className="d">Atrae raids y expulsa intrusos.</span>
-              </li>
-              <li>
-                <ShieldAlert size={20} aria-hidden="true" />
-                <span className="m">Anti-nuke</span>
-                <span className="d">Bloquea acciones masivas.</span>
-              </li>
-              <li>
-                <Ticket size={20} aria-hidden="true" />
-                <span className="m">Tickets</span>
-                <span className="d">Atención en privado para tu gente.</span>
-              </li>
-            </ul>
-          </div>
+          <ul className="closing-list">
+            <li>
+              <ShieldCheck size={20} aria-hidden="true" />
+              <span><span className="m">Automod</span><br /><span className="d">Filtra spam, enlaces y menciones.</span></span>
+            </li>
+            <li>
+              <Radar size={20} aria-hidden="true" />
+              <span><span className="m">Honeypot</span><br /><span className="d">Atrae raids y expulsa intrusos.</span></span>
+            </li>
+            <li>
+              <ShieldAlert size={20} aria-hidden="true" />
+              <span><span className="m">Anti-nuke</span><br /><span className="d">Bloquea acciones masivas.</span></span>
+            </li>
+            <li>
+              <Ticket size={20} aria-hidden="true" />
+              <span><span className="m">Tickets</span><br /><span className="d">Atención en privado para tu gente.</span></span>
+            </li>
+          </ul>
         </div>
       </div>
 

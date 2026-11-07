@@ -28,9 +28,10 @@ export default function AutoroleForm({
 
   return (
     <>
-      <section className="section-block" aria-label="Roles para humanos">
-        <h2><UserRound size={16} style={{ verticalAlign: -2, marginRight: 8 }} aria-hidden="true" />Roles para miembros humanos</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Roles para humanos">
+        <div className="panel-head"><div><h2 className="panel-title"><UserRound size={16} className="h2-icon" aria-hidden="true" />Roles para miembros humanos</h2>
+          <p className="panel-desc">Se asignan automáticamente cuando alguien entra al servidor.</p></div></div>
+        <div className="panel-body">
           <p className="hint" style={{ marginBottom: 12 }}>Se asignan automáticamente cuando alguien entra al servidor.</p>
           <Checklist
             items={configurable}
@@ -42,9 +43,10 @@ export default function AutoroleForm({
         </div>
       </section>
 
-      <section className="section-block" aria-label="Roles para bots">
-        <h2><Bot size={16} style={{ verticalAlign: -2, marginRight: 8 }} aria-hidden="true" />Roles para bots</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Roles para bots">
+        <div className="panel-head"><div><h2 className="panel-title"><Bot size={16} className="h2-icon" aria-hidden="true" />Roles para bots</h2>
+          <p className="panel-desc">Se asignan a las cuentas de bots que entran (control de permisos desde el primer segundo).</p></div></div>
+        <div className="panel-body">
           <p className="hint" style={{ marginBottom: 12 }}>Se asignan a las cuentas de bots que se incorporen (control de permisos desde el primer segundo).</p>
           <Checklist
             items={configurable}

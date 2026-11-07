@@ -2,6 +2,7 @@ import { getSection, getRoles } from '@/lib/loadConfig';
 import AccessNotice from '@/components/AccessNotice';
 import AutoroleForm from './AutoroleForm';
 import type { AutoroleSection } from '@/lib/types';
+import PageHead from '@/components/PageHead';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Autorole' };
@@ -16,10 +17,7 @@ export default async function AutorolePage({ params }: { params: Promise<{ id: s
 
   return (
     <main className="content">
-      <div className="page-head">
-        <h1>Autorole</h1>
-        <p>Roles que el bot asigna solo al entrar: para miembros y para bots.</p>
-      </div>
+      <PageHead title="Autorole" description="Roles que el bot asigna solo al entrar: para miembros y para bots." />
       <AutoroleForm guildId={id} initial={autorole} roles={roles} />
     </main>
   );

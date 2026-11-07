@@ -61,7 +61,10 @@ export default function MusicaForm({
 
   return (
     <>
-      <div className="card card-pad">
+      <section className="panel" aria-label="Reproducción">
+        <div className="panel-head"><div><h2 className="panel-title">Reproducción</h2>
+          <p className="panel-desc">Volumen, autoplay, historial y panel de botones.</p></div></div>
+        <div className="panel-body">
         <div className="setting-row">
           <span>
             <span className="label">Volumen por defecto</span>
@@ -90,11 +93,13 @@ export default function MusicaForm({
           </span>
           <Toggle checked={state.nowPlayingPanel} onChange={(v) => update('nowPlayingPanel', v)} label="Panel ahora suena" />
         </div>
-      </div>
+        </div>
+      </section>
 
-      <section className="section-block" aria-label="Fairplay">
-        <h2>Fairplay</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Fairplay">
+        <div className="panel-head"><div><h2 className="panel-title">Fairplay</h2>
+          <p className="panel-desc">La música solo la pueden pedir quienes tengan el rol elegido.</p></div></div>
+        <div className="panel-body">
           <div className="setting-row">
             <span>
               <span className="label">Fairplay activo</span>
@@ -108,7 +113,7 @@ export default function MusicaForm({
                 <span className="label">Rol con permiso de música</span>
                 <span className="desc">Solo este rol puede pedir canciones.</span>
               </span>
-              <div style={{ minWidth: 210, maxWidth: 320, width: '100%' }}>
+              <div className="control">
                 <Listbox
                   value={state.fairplayRoleId ?? NO_CHANNEL}
                   options={fairplayRoles}
@@ -121,9 +126,10 @@ export default function MusicaForm({
         </div>
       </section>
 
-      <section className="section-block" aria-label="Modo 24/7">
-        <h2>Modo 24/7</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Modo 24/7">
+        <div className="panel-head"><div><h2 className="panel-title">Modo 24/7</h2>
+          <p className="panel-desc">Deyra se queda en el canal y sigue sonando sin nadie.</p></div></div>
+        <div className="panel-body">
           <div className="setting-row">
             <span>
               <span className="label">24/7 activado</span>
@@ -135,7 +141,7 @@ export default function MusicaForm({
             <>
               <div className="setting-row">
                 <span><span className="label">Canal de voz 24/7</span><span className="desc">Dónde vive el bot de forma permanente. Si ya está en otro canal, se mueve aquí al guardar.</span></span>
-                <div style={{ minWidth: 210, maxWidth: 320, width: '100%' }}>
+                <div className="control">
                   <Listbox
                     value={voice247 ?? NO_CHANNEL}
                     options={voiceChannels}
@@ -147,7 +153,7 @@ export default function MusicaForm({
               </div>
               <div className="setting-row">
                 <span><span className="label">Canal de texto 24/7</span><span className="desc">Para los avisos del modo 24/7.</span></span>
-                <div style={{ minWidth: 210, maxWidth: 320, width: '100%' }}>
+                <div className="control">
                   <Listbox
                     value={state.text247Id ?? NO_CHANNEL}
                     options={textChannels}
@@ -164,9 +170,10 @@ export default function MusicaForm({
         )}
       </section>
 
-      <section className="section-block" aria-label="Límites">
-        <h2>Límites y tiempos</h2>
-        <div className="card card-pad" style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+      <section className="panel" aria-label="Límites">
+        <div className="panel-head"><div><h2 className="panel-title">Límites y tiempos</h2>
+          <p className="panel-desc"></p></div></div>
+        <div className="panel-body" style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
           <NumberInput id="leaveEmpty" label="Salir si vacío (seg)" min={0} max={3600} value={msToSeconds(state.leaveOnEmptyMs)} onChange={(v) => update('leaveOnEmptyMs', secondsToMs(v))} />
           <NumberInput id="leaveEnd" label="Salir tras la cola (seg)" min={0} max={3600} value={msToSeconds(state.leaveOnEndMs)} onChange={(v) => update('leaveOnEndMs', secondsToMs(v))} />
           <NumberInput id="maxQueue" label="Máx. canciones en cola" min={1} max={5000} value={state.maxQueueSize} onChange={(v) => update('maxQueueSize', v)} />

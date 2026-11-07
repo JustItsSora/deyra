@@ -79,7 +79,10 @@ export default function LevelsForm({
 
   return (
     <>
-      <div className="card card-pad">
+      <section className="panel" aria-label="Estado">
+        <div className="panel-head"><div><h2 className="panel-title">Estado</h2>
+          <p className="panel-desc">XP por chatear, anuncios y canal.</p></div></div>
+        <div className="panel-body">
         <div className="setting-row">
           <span>
             <span className="label">Niveles y XP activos</span>
@@ -99,7 +102,7 @@ export default function LevelsForm({
             <span className="label">Canal de anuncios</span>
             <span className="desc">¿Dónde se publica el aviso? Vacío = en el mismo canal donde ocurrió.</span>
           </span>
-          <div style={{ minWidth: 220, maxWidth: 320, width: '100%' }}>
+          <div className="control">
             <Listbox
               value={state.announceChannelId ?? NO_CHANNEL}
               options={announceOptions}
@@ -109,11 +112,13 @@ export default function LevelsForm({
             />
           </div>
         </div>
-      </div>
+        </div>
+      </section>
 
-      <section className="section-block" aria-label="Ganancia de XP">
-        <h2>Ganancia de XP</h2>
-        <div className="card card-pad" style={{ display: 'flex', gap: 18, flexWrap: 'wrap', opacity: state.enabled ? 1 : 0.55, pointerEvents: state.enabled ? 'auto' : 'none' }}>
+      <section className="panel" aria-label="Ganancia de XP">
+        <div className="panel-head"><div><h2 className="panel-title">Ganancia de XP</h2>
+          <p className="panel-desc">Cuánto XP da cada mensaje y cada cuánto.</p></div></div>
+        <div className="panel-body panel-muted" style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
           <NumberInput id="xpMin" label="XP mín. por mensaje" min={1} max={200} value={state.xpPerMessageMin} onChange={(v) => update('xpPerMessageMin', v)} />
           <NumberInput id="xpMax" label="XP máx. por mensaje" min={1} max={200} value={state.xpPerMessageMax} onChange={(v) => update('xpPerMessageMax', v)} />
           <NumberInput id="xpCooldown" label="Cooldown (segundos)" min={0} max={3600} value={state.xpCooldownSeconds} onChange={(v) => update('xpCooldownSeconds', v)} />
@@ -123,9 +128,10 @@ export default function LevelsForm({
         )}
       </section>
 
-      <section className="section-block" aria-label="Recompensas por nivel">
-        <h2>Recompensas por nivel</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Recompensas por nivel">
+        <div className="panel-head"><div><h2 className="panel-title">Recompensas por nivel</h2>
+          <p className="panel-desc">Roles que se otorgan solos al subir de nivel.</p></div></div>
+        <div className="panel-body">
           {rewardEntries.length > 0 ? (
             <div style={{ display: 'grid', gap: 8 }}>
               {rewardEntries.map(({ level, roleId }) => {
@@ -133,7 +139,7 @@ export default function LevelsForm({
                 return (
                   <div key={level} className="setting-row" style={{ padding: '9px 2px' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span className="pill" style={{ minWidth: 54, justifyContent: 'center' }}>Nvl {level}</span>
+                      <span className="pill pill-level">Nvl {level}</span>
                       <span>{role ? `@${role.name}` : `rol ${roleId.slice(0, 6)}…`}</span>
                     </span>
                     <button type="button" className="btn btn-ghost btn-sm" onClick={() => removeReward(level)} aria-label={`Quitar recompensa de nivel ${level}`}>
@@ -168,9 +174,10 @@ export default function LevelsForm({
         </div>
       </section>
 
-      <section className="section-block" aria-label="Canales ignorados">
-        <h2>Canales sin XP</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Canales ignorados">
+        <div className="panel-head"><div><h2 className="panel-title">Canales sin XP</h2>
+          <p className="panel-desc">En estos canales los miembros no ganan XP.</p></div></div>
+        <div className="panel-body">
           <Checklist
             items={channels.filter((c) => [0, 5, 15].includes(c.type)).map((c) => ({ id: c.id, label: `#${c.name}` }))}
             selected={state.ignoredChannels}

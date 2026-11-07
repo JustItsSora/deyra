@@ -92,7 +92,10 @@ export default function AutomodForm({
 
   return (
     <>
-      <div className="card card-pad">
+      <section className="panel" aria-label="Automod activo">
+        <div className="panel-head"><div><h2 className="panel-title">Automod activo</h2>
+          <p className="panel-desc">Apaga o enciende todas las protecciones de una vez.</p></div></div>
+        <div className="panel-body">
         <div className="setting-row">
           <span>
             <span className="label">Automod activo</span>
@@ -100,11 +103,13 @@ export default function AutomodForm({
           </span>
           <Toggle checked={state.enabled} onChange={(v) => update('enabled', v)} label="Automod activo" />
         </div>
-      </div>
+        </div>
+      </section>
 
-      <section className="section-block" aria-label="Protecciones">
-        <h2>Protecciones</h2>
-        <div className="card card-pad" style={{ opacity: state.enabled ? 1 : 0.55, pointerEvents: state.enabled ? 'auto' : 'none' }}>
+      <section className="panel" aria-label="Protecciones">
+        <div className="panel-head"><div><h2 className="panel-title">Protecciones</h2>
+          <p className="panel-desc">Filtros aplicados a mensajes y ediciones.</p></div></div>
+        <div className="panel-body panel-muted">
           {toggleRow('antiInvite', 'Anti-invitaciones', 'Elimina enlaces de discord.gg, discord.com/invite, dsc.gg e invite.gg.')}
           {toggleRow('antiLink', 'Anti-enlaces', 'Elimina enlaces HTTP/HTTPS salvo los dominios de tu lista blanca.')}
           {toggleRow('antiSpam', 'Anti-spam', 'Ráfagas de mensajes o mismo contenido repetido. Ver ajustes finos.')}
@@ -115,9 +120,10 @@ export default function AutomodForm({
         </div>
       </section>
 
-      <section className="section-block" aria-label="Ajustes finos">
-        <h2>Ajustes finos</h2>
-        <div className="card card-pad" style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+      <section className="panel" aria-label="Ajustes finos">
+        <div className="panel-head"><div><h2 className="panel-title">Ajustes finos</h2>
+          <p className="panel-desc">Límites y umbrales de los filtros.</p></div></div>
+        <div className="panel-body" style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
           <NumberInput id="maxMentions" label="Máx. menciones" min={1} max={50} value={state.maxMentions} onChange={(v) => update('maxMentions', v)} />
           <NumberInput id="spamMessageCount" label="Mensajes para spam" min={2} max={30} value={state.spamMessageCount} onChange={(v) => update('spamMessageCount', v)} />
           <NumberInput id="spamIntervalSeconds" label="Ventana (segundos)" min={1} max={120} value={state.spamIntervalSeconds} onChange={(v) => update('spamIntervalSeconds', v)} />
@@ -125,9 +131,10 @@ export default function AutomodForm({
         </div>
       </section>
 
-      <section className="section-block" aria-label="Palabras prohibidas">
-        <h2>Palabras prohibidas</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Palabras prohibidas">
+        <div className="panel-head"><div><h2 className="panel-title">Palabras prohibidas</h2>
+          <p className="panel-desc">Insensible a mayúsculas; los límites de palabra evitan falsos positivos.</p></div></div>
+        <div className="panel-body">
           <ChipsEditor
             values={state.badWordsList}
             onChange={(next) => update('badWordsList', next)}
@@ -139,9 +146,10 @@ export default function AutomodForm({
         </div>
       </section>
 
-      <section className="section-block" aria-label="Dominios permitidos">
-        <h2>Dominios permitidos</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Dominios permitidos">
+        <div className="panel-head"><div><h2 className="panel-title">Dominios permitidos</h2>
+          <p className="panel-desc">Enlaces que el anti-enlaces deja pasar, incluidos subdominios.</p></div></div>
+        <div className="panel-body">
           <ChipsEditor
             values={state.linkAllowlist}
             onChange={(next) => update('linkAllowlist', next)}
@@ -154,9 +162,10 @@ export default function AutomodForm({
         </div>
       </section>
 
-      <section className="section-block" aria-label="Acción al detectar">
-        <h2>Acción al detectar</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Acción al detectar">
+        <div className="panel-head"><div><h2 className="panel-title">Acción al detectar</h2>
+          <p className="panel-desc">Qué hace Deyra al detectar una infracción y cómo escala.</p></div></div>
+        <div className="panel-body">
           <div className="cols cols-2">
             <div className="field">
               <label className="label" htmlFor="punishmentAction">Cuando hay una infracción</label>
@@ -177,10 +186,11 @@ export default function AutomodForm({
         </div>
       </section>
 
-      <section className="section-block" aria-label="Canales y roles de confianza">
-        <h2>Canales y roles de confianza</h2>
-        <div className="cols cols-2">
-          <div className="card card-pad">
+      <section className="panel" aria-label="Canales y roles de confianza">
+        <div className="panel-head"><div><h2 className="panel-title">Canales y roles de confianza</h2>
+          <p className="panel-desc">Excluidos del automod: nunca se filtran ahí.</p></div></div>
+        <div className="cols cols-2 mt">
+          <div className="panel-trust">
             <span className="label">Canales excluidos</span>
             <div className="mt">
               <Checklist
@@ -192,7 +202,7 @@ export default function AutomodForm({
               />
             </div>
           </div>
-          <div className="card card-pad">
+          <div className="panel-trust">
             <span className="label">Roles excluidos</span>
             <div className="mt">
               <Checklist
@@ -207,11 +217,12 @@ export default function AutomodForm({
         </div>
       </section>
 
-      <section className="section-block" aria-label="Registro">
-        <h2>Registro de acciones</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Registro">
+        <div className="panel-head"><div><h2 className="panel-title">Registro de acciones</h2>
+          <p className="panel-desc">Dónde publica Deyra las acciones del automod.</p></div></div>
+        <div className="panel-body">
           <span className="label">Canal de logs del automod</span>
-          <div className="mt" style={{ maxWidth: 420 }}>
+          <div className="control-xl mt">
             <Listbox
               value={state.logChannelId ?? ''}
               options={channelOptions(channels)}

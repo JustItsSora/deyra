@@ -26,18 +26,39 @@ type SidebarProps = {
   userAvatarUrl?: string | null;
 };
 
-const NAV_ITEMS = [
-  { href: '', label: 'Resumen', icon: LayoutDashboard },
-  { href: '/general', label: 'General', icon: Settings2 },
-  { href: '/automod', label: 'Automod', icon: ShieldCheck },
-  { href: '/honeypot', label: 'Honeypot', icon: Radar },
-  { href: '/seguridad', label: 'Anti-nuke', icon: Zap },
-  { href: '/tickets', label: 'Tickets', icon: Ticket },
-  { href: '/niveles', label: 'Niveles', icon: TrendingUp },
-  { href: '/autorole', label: 'Autorole', icon: UserRoundPlus },
-  { href: '/musica', label: 'Música', icon: Music },
-  { href: '/bienvenida', label: 'Bienvenidas', icon: DoorOpen },
-  { href: '/registros', label: 'Registros', icon: ScrollText },
+// Secciones agrupadas; las rutas no cambian.
+const NAV_GROUPS: Array<{ title: string; items: Array<{ href: string; label: string; icon: typeof LayoutDashboard }> }> = [
+  {
+    title: 'Principal',
+    items: [
+      { href: '', label: 'Resumen', icon: LayoutDashboard },
+      { href: '/general', label: 'General', icon: Settings2 },
+    ],
+  },
+  {
+    title: 'Seguridad',
+    items: [
+      { href: '/automod', label: 'Automod', icon: ShieldCheck },
+      { href: '/honeypot', label: 'Honeypot', icon: Radar },
+      { href: '/seguridad', label: 'Anti-nuke', icon: Zap },
+    ],
+  },
+  {
+    title: 'Comunidad',
+    items: [
+      { href: '/bienvenida', label: 'Bienvenidas', icon: DoorOpen },
+      { href: '/autorole', label: 'Autorole', icon: UserRoundPlus },
+      { href: '/niveles', label: 'Niveles', icon: TrendingUp },
+      { href: '/tickets', label: 'Tickets', icon: Ticket },
+    ],
+  },
+  {
+    title: 'Utilidades',
+    items: [
+      { href: '/musica', label: 'Música', icon: Music },
+      { href: '/registros', label: 'Registros', icon: ScrollText },
+    ],
+  },
 ];
 
 export default function Sidebar({ guilds, currentGuildId, userName, userAvatarUrl }: SidebarProps) {
@@ -65,25 +86,29 @@ export default function Sidebar({ guilds, currentGuildId, userName, userAvatarUr
     <aside className="sidebar">
       <div className="side-top">
         <Link href="/dashboard" className="brand" aria-label="Deyra — panel principal">
-          <img className="brand-logo" src="/logo.png" alt="" width={32} height={32} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="brand-logo" src="/logo.png" alt="" width={26} height={26} />
           <span className="brand-word">Deyra</span>
         </Link>
         <div className="side-actions">
           <SoundToggle />
-          <a href="/api/auth/logout" className="icon-btn" aria-label="Cerrar sesión" title="Cerrar sesión">
-            <LogOut size={17} aria-hidden="true" />
-          </a>
         </div>
       </div>
 
       <div className="switcher" ref={rootRef}>
-        <button type="button" className="switcher-btn" aria-expanded={open} aria-haspopup="listbox" onClick={() => setOpen((v) => !v)}>
-          <GuildIcon name={current.name} iconUrl={current.iconUrl} size={34} />
-          <span style={{ minWidth: 0, textAlign: 'left' }}>
-            <span style={{ display: 'block', fontWeight: 650, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{current.name}</span>
-            <span className="muted" style={{ fontSize: 11 }}>Cambiar servidor</span>
+        <button
+          type="button"
+          className="switcher-btn"
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <GuildIcon name={current.name} iconUrl={current.iconUrl} size={30} />
+          <span className="switcher-meta">
+            <span className="switcher-name">{current.name}</span>
+            <span className="switcher-hint">Cambiar servidor</span>
           </span>
-          <ChevronDown size={16} aria-hidden="true" style={{ marginLeft: 'auto', color: 'var(--muted)', flexShrink: 0 }} />
+          <ChevronDown className="switcher-chev" size={16} aria-hidden="true" />
         </button>
 
         {open && (
@@ -99,8 +124,8 @@ export default function Sidebar({ guilds, currentGuildId, userName, userAvatarUr
                   onClick={() => router.push(`/dashboard/${g.id}`)}
                 >
                   <GuildIcon name={g.name} iconUrl={g.iconUrl} size={26} />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</span>
-                  {g.id === current.id && <Check size={16} className="check" style={{ opacity: 1 }} aria-hidden="true" />}
+                  <span className="switcher-name">{g.name}</span>
+                  {g.id === current.id && <Check size={16} className="check" aria-hidden="true" />}
                 </button>
               ) : (
                 <a
@@ -110,11 +135,10 @@ export default function Sidebar({ guilds, currentGuildId, userName, userAvatarUr
                   target="_blank"
                   rel="noreferrer"
                   title="Añade a Deyra para configurarlo"
-                  style={{ textDecoration: 'none' }}
                 >
                   <GuildIcon name={g.name} iconUrl={g.iconUrl} size={26} />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</span>
-                  <span className="pill warn" style={{ marginLeft: 'auto' }}><Plus size={12} aria-hidden="true" />Invitar</span>
+                  <span className="switcher-name">{g.name}</span>
+                  <span className="pill warn push"><Plus size={12} aria-hidden="true" />Invitar</span>
                 </a>
               ),
             )}
@@ -123,26 +147,37 @@ export default function Sidebar({ guilds, currentGuildId, userName, userAvatarUr
       </div>
 
       <nav className="side-nav" aria-label="Secciones de configuración">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const path = `${base}${href}`;
-          const active = pathname === path || (href === '' && pathname === base);
-          return (
-            <Link key={href || 'overview'} href={path} className="side-link" aria-current={active ? 'page' : undefined}>
-              <Icon size={17} aria-hidden="true" />
-              {label}
-            </Link>
-          );
-        })}
+        {NAV_GROUPS.map((group) => (
+          <div className="nav-group" key={group.title}>
+            <span className="nav-group-title">{group.title}</span>
+            {group.items.map(({ href, label, icon: Icon }) => {
+              const path = `${base}${href}`;
+              const active = pathname === path || (href === '' && pathname === base);
+              return (
+                <Link key={href || 'overview'} href={path} className="side-link" aria-current={active ? 'page' : undefined}>
+                  <Icon size={17} aria-hidden="true" />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
-      <div className="side-user">
-        {userAvatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={userAvatarUrl} alt="" width={20} height={20} className="side-user-avatar" />
-        ) : (
-          <UserRound size={16} aria-hidden="true" />
-        )}
-        <span className="small" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName}</span>
+      <div className="side-foot">
+        <div className="side-user">
+          {userAvatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={userAvatarUrl} alt="" width={24} height={24} className="side-user-avatar" />
+          ) : (
+            <UserRound size={18} aria-hidden="true" />
+          )}
+          <span className="side-user-name">{userName}</span>
+        </div>
+        <a href="/api/auth/logout" className="side-logout" aria-label="Cerrar sesión" title="Cerrar sesión">
+          <LogOut size={15} aria-hidden="true" />
+          Salir
+        </a>
       </div>
     </aside>
   );

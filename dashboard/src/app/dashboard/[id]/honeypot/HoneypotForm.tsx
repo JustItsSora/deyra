@@ -1,6 +1,6 @@
 'use client';
 
-import { Info, ShieldAlert } from 'lucide-react';
+import { Bug, Info, RefreshCw, ShieldAlert } from 'lucide-react';
 import { useSectionForm } from '@/lib/useSectionForm';
 import SaveBar from '@/components/SaveBar';
 import Toast from '@/components/Toast';
@@ -42,20 +42,23 @@ export default function HoneypotForm({
 
   return (
     <>
-      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: 4 }}>
-        <div className="stat">
-          <div className="k">Cuentas atrapadas</div>
+      <div className="metrics metrics-2">
+        <div className="metric">
+          <div className="k"><Bug size={14} aria-hidden="true" /> Cuentas atrapadas</div>
           <div className="v">{state.caughtCount}</div>
           <div className="sub">desde que el señuelo está activo</div>
         </div>
-        <div className="stat">
-          <div className="k">Rotación del canal</div>
-          <div className="v" style={{ fontSize: 22, paddingTop: 6 }}>{state.rotationHours > 0 ? `cada ${state.rotationHours}h` : 'off'}</div>
+        <div className="metric">
+          <div className="k"><RefreshCw size={14} aria-hidden="true" /> Rotación del canal</div>
+          <div className="v">{state.rotationHours > 0 ? `cada ${state.rotationHours}h` : 'off'}</div>
           <div className="sub">{state.lastRotationAt ? `última hace ${timeAgo(state.lastRotationAt)}` : 'nunca rotado'}</div>
         </div>
       </div>
 
-      <div className="card card-pad">
+      <section className="panel" aria-label="Trampa">
+        <div className="panel-head"><div><h2 className="panel-title">Trampa</h2>
+          <p className="panel-desc">Un canal señuelo para atraer bots de raid y spammers automáticos.</p></div></div>
+        <div className="panel-body">
         <div className="setting-row">
           <span>
             <span className="label">Honeypot activo</span>
@@ -69,7 +72,7 @@ export default function HoneypotForm({
             <span className="label">Canal señuelo</span>
             <span className="desc">Creado automáticamente si no eliges uno, u otro canal existente.</span>
           </span>
-          <div style={{ minWidth: 210, maxWidth: 320, width: '100%' }}>
+          <div className="control">
             <Listbox
               value={state.channelId ?? NO_CHANNEL}
               options={channelOptions(channels)}
@@ -84,7 +87,7 @@ export default function HoneypotForm({
             <span className="label">Castigo</span>
             <span className="desc">Qué pasa con quien cae en la trampa.</span>
           </span>
-          <div style={{ minWidth: 200, maxWidth: 320, width: '100%' }}>
+          <div className="control">
             <Listbox
               value={state.action}
               options={ACTION_OPTIONS}
@@ -128,7 +131,7 @@ export default function HoneypotForm({
             <span className="label">Rotación del nombre</span>
             <span className="desc">Cambia el nombre del canal cada N horas para no ser predecible.</span>
           </span>
-          <div style={{ minWidth: 180, maxWidth: 260, width: '100%' }}>
+          <div className="control-sm">
             <Listbox
               value={String(state.rotationHours)}
               options={ROTATION_OPTIONS}
@@ -137,7 +140,8 @@ export default function HoneypotForm({
             />
           </div>
         </div>
-      </div>
+        </div>
+      </section>
 
       <div className="callout mt" role="note">
         <Info className="icon" aria-hidden="true" />

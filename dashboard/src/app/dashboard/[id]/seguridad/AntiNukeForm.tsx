@@ -32,7 +32,10 @@ export default function AntiNukeForm({
 
   return (
     <>
-      <div className="card card-pad">
+      <section className="panel" aria-label="Estado">
+        <div className="panel-head"><div><h2 className="panel-title">Estado</h2>
+          <p className="panel-desc">Vigila el audit log y corta ráfagas de acciones destructivas.</p></div></div>
+        <div className="panel-body">
         <div className="setting-row">
           <span>
             <span className="label">Anti-nuke activo</span>
@@ -46,7 +49,7 @@ export default function AntiNukeForm({
             <span className="label">Respuesta al detectar</span>
             <span className="desc">Qué pasa cuando se supera el umbral.</span>
           </span>
-          <div style={{ minWidth: 220, maxWidth: 360, width: '100%' }}>
+          <div className="control-lg">
             <Listbox
               value={state.action}
               options={ACTION_OPTIONS}
@@ -93,11 +96,13 @@ export default function AntiNukeForm({
             }}
           />
         </div>
-      </div>
+        </div>
+      </section>
 
-      <section className="section-block" aria-label="Roles excluidos">
-        <h2>Roles de confianza</h2>
-        <div className="card card-pad">
+      <section className="panel" aria-label="Roles excluidos">
+        <div className="panel-head"><div><h2 className="panel-title">Roles de confianza</h2>
+          <p className="panel-desc">Estos roles nunca disparan el anti-nuke.</p></div></div>
+        <div className="panel-body">
           <p className="hint" style={{ marginBottom: 12 }}>Estos roles nunca disparan el anti-nuke (p. ej. tu equipo de moderación activo borrando canales en una limpieza).</p>
           <Checklist
             items={roles.filter((r) => !r.managed && !r.isEveryone).map((r) => ({ id: r.id, label: `@${r.name}`, color: r.color !== '#000000' ? r.color : undefined }))}

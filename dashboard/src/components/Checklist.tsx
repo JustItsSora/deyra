@@ -1,5 +1,7 @@
 'use client';
 
+import type { CSSProperties } from 'react';
+
 type ChecklistItem = { id: string; label: string; color?: string };
 
 type ChecklistProps = {
@@ -19,11 +21,11 @@ export default function Checklist({ items, selected, onChange, ariaLabel, emptyT
   };
 
   return (
-    <div role="group" aria-label={ariaLabel} style={{ maxHeight: 240, overflowY: 'auto', display: 'grid', gap: 2 }}>
+    <div role="group" aria-label={ariaLabel} className="checklist">
       {items.map((item) => (
         <label key={item.id} className="checkline">
           <input type="checkbox" checked={selected.includes(item.id)} onChange={() => toggle(item.id)} />
-          {item.color && <span className="role-dot" style={{ background: item.color }} aria-hidden="true" />}
+          {item.color && <span className="role-dot" style={{ '--role-dot': item.color } as CSSProperties} aria-hidden="true" />}
           <span>{item.label}</span>
         </label>
       ))}

@@ -8,7 +8,6 @@ import {
   DoorOpen, ScrollText, LogOut, UserRound, Plus, Check, Ticket, TrendingUp,
   UserRoundPlus, Music,
 } from 'lucide-react';
-import ThemeSwitcher from './ThemeSwitcher';
 import GuildIcon from './GuildIcon';
 import SoundToggle from './SoundToggle';
 
@@ -135,10 +134,9 @@ export default function Sidebar({ guilds, currentGuildId, userName }: SidebarPro
         })}
       </nav>
 
-      <ThemeSwitcher />
-      <div className="side-top" style={{ marginTop: 'auto', justifyContent: 'flex-start', gap: 10, padding: '12px 4px 0', boxShadow: '0 -1px 0 var(--border)' }}>
-        <UserRound size={18} aria-hidden="true" style={{ color: 'var(--muted)' }} />
-        <span className="small muted" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName}</span>
+      <div className="side-user">
+        <UserRound size={16} aria-hidden="true" />
+        <span className="small" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName}</span>
       </div>
     </aside>
   );

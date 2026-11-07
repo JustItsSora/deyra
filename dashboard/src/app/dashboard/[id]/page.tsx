@@ -56,16 +56,10 @@ export default async function GuildOverview({ params }: { params: Promise<{ id: 
 
   return (
     <main className="content">
-      <header className="banner">
-        <div className="banner-copy">
-          <span className="kicker">Resumen del servidor</span>
-          <h1>{overview.name}</h1>
-          <p>Estado del servidor y accesos directos a cada sección de configuración.</p>
-        </div>
-        <div className="banner-art" aria-hidden="true">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/danica.jpg" alt="" width={736} height={736} />
-        </div>
+      <header className="page-head">
+        <span className="kicker">Resumen del servidor</span>
+        <h1>{overview.name}</h1>
+        <p>Estado del servidor y accesos directos a cada sección de configuración.</p>
       </header>
 
       <div className="stat-grid">

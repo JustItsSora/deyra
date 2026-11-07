@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Volume2, ShieldCheck, Radar, ShieldAlert, Ticket } from 'lucide-react';
+import { ArrowRight, Plus, ShieldCheck, Radar, ShieldAlert, Ticket } from 'lucide-react';
 import { inviteUrl } from '@/lib/discord';
 import SoundToggle from '@/components/SoundToggle';
 
@@ -43,7 +43,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         {authMessage && (
           <div className="content" style={{ paddingTop: 14, paddingBottom: 0 }}>
             <div className="callout danger" role="alert">
-              <Volume2 size={16} aria-hidden="true" />
+              <ShieldAlert className="icon" aria-hidden="true" />
               <span>{authMessage}</span>
             </div>
           </div>
@@ -68,10 +68,14 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
             </p>
           </div>
 
-          <div className="medallion" aria-hidden="true">
+          <figure className="portrait">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/danica.jpg" alt="" fetchPriority="high" />
-          </div>
+            <img src="/danica.jpg" alt="Danica, la guardiana de Deyra" fetchPriority="high" />
+            <figcaption>
+              <span className="portrait-name">Danica</span>
+              <span className="portrait-role">guardiana del orden</span>
+            </figcaption>
+          </figure>
         </section>
 
         <div className="spec-strip" aria-label="Ficha técnica">
@@ -139,8 +143,8 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 
           <div className="plate" aria-label="Vista esquemática del panel">
             <div className="plate-bar">
-              <span className="dot" /><span className="dot" /><span className="dot" />
-              <span className="plate-title">Deyra · Panel</span>
+              <span className="plate-title">Panel · Automod</span>
+              <span className="pill ok">En vivo</span>
             </div>
             <div className="plate-body">
               <div className="prow"><span><b>Automod</b> · invites, links con allowlist</span><span className="sw" aria-hidden="true"><i /></span></div>
@@ -178,19 +182,19 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
           <span className="eyebrow">Preguntas</span>
           <h2>Antes de añadirla.</h2>
           <details>
-            <summary>¿Cuánto cuesta?<ArrowRight size={16} className="chev" aria-hidden="true" /></summary>
+            <summary>¿Cuánto cuesta?<Plus size={16} className="chev" aria-hidden="true" /></summary>
             <p>Nada. Es gratis, y tus datos viven en el servidor del bot.</p>
           </details>
           <details>
-            <summary>¿Quién puede ver y cambiar la configuración?<ArrowRight size={16} className="chev" aria-hidden="true" /></summary>
+            <summary>¿Quién puede ver y cambiar la configuración?<Plus size={16} className="chev" aria-hidden="true" /></summary>
             <p>Solo miembros con permiso de administrador o de gestión del servidor, y únicamente en los servidores donde Deyra está presente. Un miembro normal no ve nada del panel.</p>
           </details>
           <details>
-            <summary>¿Se lleva mi cuenta o mi correo?<ArrowRight size={16} className="chev" aria-hidden="true" /></summary>
+            <summary>¿Se lleva mi cuenta o mi correo?<Plus size={16} className="chev" aria-hidden="true" /></summary>
             <p>No. El login pasa por el OAuth oficial de Discord; la sesión vive en una cookie httpOnly y el bot nunca la ve. El panel habla con el bot por HTTPS y valida todo.</p>
           </details>
           <details>
-            <summary>¿Puedo salir cuando quiera?<ArrowRight size={16} className="chev" aria-hidden="true" /></summary>
+            <summary>¿Puedo salir cuando quiera?<Plus size={16} className="chev" aria-hidden="true" /></summary>
             <p>Sí. Desinstalar el bot te devuelve tu servidor tal cual estaba: la configuración vive donde corrió siempre, en tu propia instancia.</p>
           </details>
         </section>
@@ -199,10 +203,10 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
       <div className="closing">
         <div className="inner">
           <div className="closing-copy">
-            <span className="eyebrow-ink">Cierre</span>
-            <h2>Sellar tu servidor.</h2>
-            <p>Añádela y el orden vuelve a reinar.</p>
-            <a className="btn-ink" href={ctaHref}>Añadir a Discord<ArrowRight size={17} aria-hidden="true" /></a>
+            <span className="eyebrow">Empezar</span>
+            <h2>Pon tu servidor en orden.</h2>
+            <p>Gratis, sin tarjeta. Se instala en menos de un minuto y se configura desde el panel.</p>
+            <a className="btn btn-primary" href={ctaHref}>Añadir a Discord<ArrowRight size={15} aria-hidden="true" /></a>
           </div>
           <div className="closing-aside">
             <span className="cap">Incluye</span>

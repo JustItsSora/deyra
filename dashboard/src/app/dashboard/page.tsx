@@ -31,16 +31,10 @@ export default async function DashboardHome() {
 
   return (
     <main className="content" style={{ paddingTop: 28 }}>
-      <header className="banner">
-        <div className="banner-copy">
-          <span className="kicker">Tus servidores</span>
-          <h1>Hola, {session?.username}</h1>
-          <p>Elige un servidor para ver y editar su configuración. Solo aparecen los servidores donde tienes permisos de gestión y Deyra está presente.</p>
-        </div>
-        <div className="banner-art" aria-hidden="true">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/danica.jpg" alt="" width={736} height={736} />
-        </div>
+      <header className="page-head">
+        <span className="kicker">Tus servidores</span>
+        <h1>Hola, {session?.username}</h1>
+        <p>Elige un servidor para ver y editar su configuración. Solo aparecen los servidores donde tienes permisos de gestión y Deyra está presente.</p>
       </header>
 
       {present.length > 0 ? (

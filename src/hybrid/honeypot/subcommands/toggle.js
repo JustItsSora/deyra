@@ -18,7 +18,8 @@ module.exports = {
         const [row] = await HoneypotConfig.findOrCreate({ where: { guildId: ctx.guild.id }, defaults: { guildId: ctx.guild.id } });
 
         // Si no hay canal asignado, se crea uno propio con nombre señuelo.
-        if (active && !row.channelId) {
+        const createdNow = active && !row.channelId;
+        if (createdNow) {
             try {
                 const channel = await ensureHoneypotChannel(ctx.guild);
                 row.channelId = channel.id;
@@ -31,6 +32,12 @@ module.exports = {
         row.enabled = active;
         await row.save();
         invalidateCache(ctx.guild.id);
+
+        if (createdNow) {
+            const { sendHoneypotWarning } = require('../../../lib/honeypot');
+            const ch = ctx.guild.channels.cache.get(row.channelId);
+            await sendHoneypotWarning(ch, { guild: ctx.guild, action: row.action, timeoutMinutes: row.timeoutMinutes });
+        }
 
         return reply(ctx, successPanel(active ? 'Honeypot activado' : 'Honeypot desactivado',
             active ? `La trampa está activa en <#${row.channelId}>.` : 'La trampa está apagada. El canal sigue existiendo, pero ya no se castiga a nadie.'));

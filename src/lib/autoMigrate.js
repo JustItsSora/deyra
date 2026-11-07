@@ -112,6 +112,26 @@ async function runColumnMigrations({ dryRun = false, log = console.log } = {}) {
         }
     }
 
+    // Backfill aditivo (una sola vez): honeypot rotationHours → rotationMinutes.
+    // Multiplica los valores heredados por 60; idempotente (solo toca filas
+    // que aún tienen rotationMinutes = 0 con horario viejo distinto de 0).
+    try {
+        if (await tableExists(queryInterface, 'honeypot_configs')) {
+            const desc = await queryInterface.describeTable('honeypot_configs');
+            if (desc.rotationHours && desc.rotationMinutes) {
+                await sequelize.query(
+                    "UPDATE honeypot_configs SET rotationMinutes = COALESCE(rotationMinutes, 0) WHERE rotationMinutes IS NULL"
+                );
+                await sequelize.query(
+                    "UPDATE honeypot_configs SET rotationMinutes = COALESCE(rotationHours, 0) * 60 WHERE COALESCE(rotationMinutes, 0) = 0 AND COALESCE(rotationHours, 0) > 0"
+                );
+                log('[db] Honeypot: rotationHours → rotationMinutes heredadas (x60).');
+            }
+        }
+    } catch (err) {
+        log(`[db] Backfill de honeypot no aplicado: ${err.message}`);
+    }
+
     if (failed > 0) {
         log(`[db] Migración terminada con ${failed} columna(s) sin aplicar (detalle arriba).`);
     } else {

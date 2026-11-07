@@ -2,6 +2,7 @@ const { reply, isSlash } = require('../../../lib/reply');
 const { infoPanel } = require('../../../lib/panel');
 const { HoneypotConfig } = require('../../../data/models');
 const { emoji } = require('../../../lib/emojis');
+const { formatRotationLabel } = require('../../../lib/honeypot');
 
 const LABELS = { timeout: 'Silenciar (timeout)', kick: 'Expulsar (kick)', ban: 'Banear (ban)' };
 
@@ -19,7 +20,7 @@ module.exports = {
             `**Canal:** ${config.channelId ? `<#${config.channelId}>` : 'No asignado'}`,
             `**Castigos aplicados:** ${config.caughtCount || 0}`,
             `**Auto-purge:** ${on(config.autoPurge)}`,
-            `**Rotación:** ${config.rotationHours > 0 ? `cada ${config.rotationHours}h` : 'desactivada'}`,
+            `**Rotación:** ${formatRotationLabel(config.rotationMinutes)}`,
             `**Acción:** \`${LABELS[config.action] || config.action}\``,
             config.action === 'timeout' ? `**Duración del silencio:** ${config.timeoutMinutes} minutos` : null,
         ].filter(Boolean);

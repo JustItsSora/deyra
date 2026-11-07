@@ -31,6 +31,26 @@ const MAX_BODY = 64 * 1024;
 const RATE_LIMIT = 60;
 const RATE_WINDOW_MS = 5 * 60 * 1000;
 
+// JSON.parse sobre columnas TEXT con datos potencialmente corruptos: un solo
+// archivo dañado no debe convertir toda la sección en un 500.
+function parseJsonArray(raw, fallback = []) {
+    try {
+        const v = JSON.parse(raw || '[]');
+        return Array.isArray(v) ? v : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+function parseJsonObject(raw, fallback = {}) {
+    try {
+        const v = JSON.parse(raw || '{}');
+        return v && typeof v === 'object' && !Array.isArray(v) ? v : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
 const rateBuckets = new Map(); // ip -> { count, resetAt }
 
 function timingSafeEqualString(a, b) {
@@ -193,30 +213,31 @@ function automodJson(cfg) {
         punishmentAction: cfg?.punishmentAction ?? 'delete',
         escalationAction: cfg?.escalationAction ?? 'off',
         escalationThreshold: cfg?.escalationThreshold ?? 5,
-        badWordsList: JSON.parse(cfg?.badWordsList || '[]'),
-        whitelistedChannels: JSON.parse(cfg?.whitelistedChannels || '[]'),
-        whitelistedRoles: JSON.parse(cfg?.whitelistedRoles || '[]'),
-        linkAllowlist: JSON.parse(cfg?.linkAllowlist || '[]'),
+        badWordsList: parseJsonArray(cfg?.badWordsList),
+        whitelistedChannels: parseJsonArray(cfg?.whitelistedChannels),
+        whitelistedRoles: parseJsonArray(cfg?.whitelistedRoles),
+        linkAllowlist: parseJsonArray(cfg?.linkAllowlist),
         logChannelId: cfg?.logChannelId ?? null,
     };
 }
 
 function honeypotJson(cfg) {
+    const rotationMinutes = cfg?.rotationMinutes ?? ((cfg?.rotationHours ?? 0) * 60);
     return {
         enabled: cfg?.enabled ?? false,
         channelId: cfg?.channelId ?? null,
         action: cfg?.action ?? 'kick',
         timeoutMinutes: cfg?.timeoutMinutes ?? 1440,
         autoPurge: cfg?.autoPurge ?? false,
-        rotationHours: cfg?.rotationHours ?? 0,
+        rotationMinutes,
+        rotationHours: Math.floor(rotationMinutes / 60), // compat: panel anterior
         caughtCount: cfg?.caughtCount ?? 0,
-        lastRotationAt: cfg?.lastRotationAt ? new Date(cfg.lastRotationAt).toISOString() : null,
+        lastRotationAt: (() => { const d = cfg?.lastRotationAt ? new Date(cfg.lastRotationAt) : null; return d && !Number.isNaN(d.getTime()) ? d.toISOString() : null; })(),
     };
 }
 
 function levelsJson(cfg) {
-    let roleRewards = {};
-    try { roleRewards = JSON.parse(cfg?.roleRewards || '{}'); } catch { roleRewards = {}; }
+    const roleRewards = parseJsonObject(cfg?.roleRewards);
     return {
         enabled: cfg?.enabled ?? true,
         announceLevelUp: cfg?.announceLevelUp ?? true,
@@ -225,7 +246,7 @@ function levelsJson(cfg) {
         xpPerMessageMax: cfg?.xpPerMessageMax ?? 25,
         xpCooldownSeconds: cfg?.xpCooldownSeconds ?? 60,
         roleRewards,
-        ignoredChannels: JSON.parse(cfg?.ignoredChannels || '[]'),
+        ignoredChannels: parseJsonArray(cfg?.ignoredChannels),
     };
 }
 
@@ -234,7 +255,7 @@ function ticketsJson(cfg) {
         categoryId: cfg?.categoryId ?? null,
         panelChannelId: cfg?.panelChannelId ?? null,
         logChannelId: cfg?.logChannelId ?? null,
-        supportRoleIds: JSON.parse(cfg?.supportRoleIds || '[]'),
+        supportRoleIds: parseJsonArray(cfg?.supportRoleIds),
         welcomeMessage: cfg?.welcomeMessage ?? null,
         panelTitle: cfg?.panelTitle ?? 'Soporte',
         panelDescription: cfg?.panelDescription ?? 'Haz clic en el botón de abajo para abrir un ticket.',
@@ -261,8 +282,8 @@ function musicJson(cfg) {
 
 function autoroleJson(cfg) {
     return {
-        roleIds: JSON.parse(cfg?.roleIds || '[]'),
-        botRoleIds: JSON.parse(cfg?.botRoleIds || '[]'),
+        roleIds: parseJsonArray(cfg?.roleIds),
+        botRoleIds: parseJsonArray(cfg?.botRoleIds),
     };
 }
 
@@ -272,8 +293,8 @@ function antinukeJson(cfg) {
         action: cfg?.action ?? 'ban',
         threshold: cfg?.threshold ?? 3,
         windowMinutes: cfg?.windowMinutes ?? 10,
-        whitelistedUsers: JSON.parse(cfg?.whitelistedUsers || '[]'),
-        whitelistedRoles: JSON.parse(cfg?.whitelistedRoles || '[]'),
+        whitelistedUsers: parseJsonArray(cfg?.whitelistedUsers),
+        whitelistedRoles: parseJsonArray(cfg?.whitelistedRoles),
     };
 }
 
@@ -293,6 +314,7 @@ function guildJson(cfg) {
     return {
         prefix: cfg?.prefix ?? null,
         language: cfg?.language ?? 'es',
+        timezone: cfg?.timezone ?? 'UTC',
         nsfw: cfg?.nsfw ?? false,
         modLogChannelId: cfg?.modLogChannelId ?? null,
         memberLogChannelId: cfg?.memberLogChannelId ?? null,
@@ -345,18 +367,28 @@ async function patchAutomod(guild, patch) {
 }
 
 async function patchHoneypot(guild, patch) {
-    const allowed = ['enabled', 'channelId', 'action', 'timeoutMinutes', 'autoPurge', 'rotationHours'];
+    const allowed = ['enabled', 'channelId', 'action', 'timeoutMinutes', 'autoPurge', 'rotationMinutes', 'rotationHours'];
     for (const key of Object.keys(patch)) {
         if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
     }
+    // Compat con el panel anterior (pre-minutos): rotationHours → rotationMinutes.
+    if (patch.rotationHours !== undefined) {
+        if (patch.rotationMinutes !== undefined) return { error: 'rotationHours y rotationMinutes no se pueden usar juntos' };
+        const h = asInt(patch.rotationHours, 0, 168);
+        if (h === null) return { error: 'invalid value for: rotationHours' };
+        const nextPatch = { ...patch, rotationMinutes: h * 60 };
+        delete nextPatch.rotationHours;
+        patch = nextPatch;
+    }
     const [cfg] = await HoneypotConfig.findOrCreate({ where: { guildId: guild.id }, defaults: { guildId: guild.id } });
+    const prevChannelId = cfg.channelId ?? null;
 
     const rules = {
         enabled: boolRule,
         action: enumOf('timeout', 'kick', 'ban'),
         timeoutMinutes: v => asInt(v, 1, 40320) ?? undefined,
         autoPurge: boolRule,
-        rotationHours: v => asInt(v, 0, 168) ?? undefined,
+        rotationMinutes: v => asInt(v, 0, 10080) ?? undefined,
         channelId: v => {
             if (v === null) return null;
             if (!isSnowflake(v)) return undefined;
@@ -389,6 +421,17 @@ async function patchHoneypot(guild, patch) {
     }
 
     await cfg.save();
+
+    const assignedNew = createdChannel || (cfg.enabled && cfg.channelId && cfg.channelId !== prevChannelId);
+    if (assignedNew) {
+        try {
+            const ch = guild.channels.cache.get(cfg.channelId);
+            const { sendHoneypotWarning } = require('../lib/honeypot');
+            await sendHoneypotWarning(ch, { guild, action: cfg.action, timeoutMinutes: cfg.timeoutMinutes });
+        } catch (warnErr) {
+            console.error('[admin/honeypot] No se pudo enviar el aviso del señuelo:', warnErr.message);
+        }
+    }
 
     require('../gateway/honeypot/honeypotEvents').invalidateCache(guild.id);
     return { data: { ...honeypotJson(cfg), createdChannel } };
@@ -592,7 +635,7 @@ async function patchMusic(guild, patch) {
     if (cfg.twentyFourSeven) {
         const voice = cfg.voice247Id ? guild.channels.cache.get(cfg.voice247Id) : null;
         const usable = voice && (voice.type === ChannelType.GuildVoice || voice.type === ChannelType.GuildStageVoice);
-        if (!usable) return { error: 'elige un canal de voz para el modo 24/7' };
+        if (!usable) return { error: 'el modo 24/7 exige un canal de voz válido del servidor: elige uno en Música, o desactiva 24/7 para guardar este cambio' };
         const me = guild.members.me;
         const canConnect = !me || voice.permissionsFor(me)?.has(PermissionsBitField.Flags.Connect);
         if (!canConnect) return { error: 'el bot no puede entrar a ese canal de voz (falta el permiso Conectar)' };
@@ -688,7 +731,7 @@ async function patchAutorole(guild, patch) {
 
 async function patchGuild(guild, patch) {
     const guildId = guild.id;
-    const allowed = ['prefix', 'language', 'modLogChannelId', 'memberLogChannelId', 'messageLogChannelId', 'muteRoleId', 'suggestionsChannelId', 'confessionsChannelId', 'birthdayChannelId', 'nsfw'];
+    const allowed = ['prefix', 'language', 'timezone', 'modLogChannelId', 'memberLogChannelId', 'messageLogChannelId', 'muteRoleId', 'suggestionsChannelId', 'confessionsChannelId', 'birthdayChannelId', 'nsfw'];
     for (const key of Object.keys(patch)) {
         if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
     }
@@ -708,7 +751,13 @@ async function patchGuild(guild, patch) {
 
     const rules = {
         prefix: v => (v === null ? null : (typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 5 ? v.trim() : undefined)),
-        language: enumOf('es', 'en'),
+        language: enumOf('es', 'en', 'en-US', 'de', 'fr', 'pt-BR', 'ru'),
+        timezone: v => {
+            if (v === null || v === undefined || typeof v !== 'string') return undefined;
+            const tz = v.trim();
+            if (!tz || tz.length > 64) return undefined;
+            try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); return tz; } catch { return undefined; }
+        },
         nsfw: boolRule,
         modLogChannelId: textChannelRule, memberLogChannelId: textChannelRule, messageLogChannelId: textChannelRule,
         muteRoleId: roleRule,

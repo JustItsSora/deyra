@@ -5,6 +5,7 @@
 const cron = require('node-cron');
 const { Op } = require('sequelize');
 const { Reminder, Giveaway, Birthday, GuildConfig, HoneypotConfig } = require('../data/models');
+
 const { rotateHoneypotChannel } = require('./honeypot');
 const { infoPanel } = require('./panel');
 const { pickWinners } = require('./giveawayUtils');
@@ -14,7 +15,7 @@ function start(client) {
     startGiveawayJob(client);
     startBirthdayJob(client);
     startHoneypotRotationJob(client);
-    console.log('[jobs] Background jobs iniciados (recordatorios cada 30s, giveaways cada 15s, cumpleaños diario a las 09:00, rotación de honeypot cada hora).');
+    console.log('[jobs] Background jobs iniciados (recordatorios cada 30s, giveaways cada 15s, cumpleaños diario a las 09:00, rotación de honeypot cada 5 min).');
 
     // El job de 24/7 vive en el módulo de música y se registra solo si hay
     // nodos de Lavalink configurados (musicManager devuelve null si no hay).
@@ -108,32 +109,66 @@ async function endGiveaway(client, giveaway) {
     }).catch(() => {});
 }
 
+function localParts(tz, now) {
+    try {
+        const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: tz || 'UTC',
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', hourCycle: 'h23',
+        }).formatToParts(now);
+        const out = {};
+        for (const p of parts) out[p.type] = p.value;
+        return out;
+    } catch {
+        return null;
+    }
+}
+
+// Cumpleaños: corren cada hora (minuto 0). Para cada servidor con canal de
+// cumpleaños, la celebración ocurre cuando en SU zona horaria son las 09:00
+// locales (el servidor puede estar en cualquier parte del mundo; antes usaba
+// la hora local del proceso que hospeda el bot).
 function startBirthdayJob(client) {
-    // Corre todos los días a las 09:00 hora del servidor donde corre el proceso.
-    cron.schedule('0 9 * * *', async () => {
+    cron.schedule('0 * * * *', async () => {
         try {
-            const today = new Date();
-            const day = today.getDate();
-            const month = today.getMonth() + 1;
+            const now = new Date();
+            const configs = await GuildConfig.findAll({ where: { birthdayChannelId: { [Op.ne]: null } } }).catch(() => []);
 
-            const birthdays = await Birthday.findAll({ where: { day, month } });
-            for (const bday of birthdays) {
+            // Para cada guild, ¿es ya su 09:00 local y qué fecha es allá?
+            const due = [];
+            for (const cfg of configs) {
+                const parts = localParts(cfg.timezone, now);
+                if (!parts) continue;
+                if (Number(parts.hour) !== 9) continue;
+                due.push({ guildId: cfg.guildId, year: Number(parts.year), month: Number(parts.month), day: Number(parts.day), birthdayChannelId: cfg.birthdayChannelId });
+            }
+            if (due.length === 0) return;
+
+            for (const entry of due) {
                 try {
-                    const guildConfig = await GuildConfig.findOne({ where: { guildId: bday.guildId } });
-                    if (!guildConfig?.birthdayChannelId) continue;
+                    const birthdays = await Birthday.findAll({
+                        where: { guildId: entry.guildId, day: entry.day, month: entry.month },
+                    });
+                    if (!birthdays.length) continue;
 
-                    const channel = await client.channels.fetch(guildConfig.birthdayChannelId).catch(() => null);
+                    const channel = await client.channels.fetch(entry.birthdayChannelId).catch(() => null);
                     if (!channel) continue;
 
-                    await channel.send({
-                        content: `<@${bday.userId}>`,
-                        ...infoPanel('🎂 ¡Feliz cumpleaños!', `¡Todos a felicitar a <@${bday.userId}> en su día especial!`),
-                    }).catch(() => {});
-
-                    bday.lastCelebratedYear = today.getFullYear();
-                    await bday.save();
+                    for (const bday of birthdays) {
+                        if (bday.lastCelebratedYear === entry.year) continue;
+                        try {
+                            await channel.send({
+                                content: `<@${bday.userId}>`,
+                                ...infoPanel('🎂 ¡Feliz cumpleaños!', `¡Todos a felicitar a <@${bday.userId}> en su día especial!`),
+                            }).catch(() => {});
+                            bday.lastCelebratedYear = entry.year;
+                            await bday.save();
+                        } catch (err) {
+                            console.error(`[jobs] Error celebrando cumpleaños de ${bday.userId}:`, err);
+                        }
+                    }
                 } catch (err) {
-                    console.error(`[jobs] Error celebrando cumpleaños de ${bday.userId}:`, err);
+                    console.error(`[jobs] Error celebrando cumpleaños en ${entry.guildId}:`, err);
                 }
             }
         } catch (err) {
@@ -152,13 +187,13 @@ function startHoneypotRotationJob(client) {
         try {
             const { Op } = require('sequelize');
             const due = await HoneypotConfig.findAll({
-                where: { enabled: true, rotationHours: { [Op.gt]: 0 }, channelId: { [Op.ne]: null } },
+                where: { enabled: true, rotationMinutes: { [Op.gt]: 0 }, channelId: { [Op.ne]: null } },
             });
 
             for (const row of due) {
                 try {
                     const last = row.lastRotationAt ? new Date(row.lastRotationAt).getTime() : 0;
-                    if (Date.now() - last < row.rotationHours * 60 * 60 * 1000) continue;
+                    if (Date.now() - last < row.rotationMinutes * 60 * 1000) continue;
 
                     const guild = client.guilds.cache.get(row.guildId);
                     if (!guild) continue;
@@ -178,7 +213,7 @@ function startHoneypotRotationJob(client) {
         } finally {
             running = false;
         }
-    }, 60 * 60 * 1000);
+    }, 5 * 60 * 1000);
 }
 
 module.exports = { start };

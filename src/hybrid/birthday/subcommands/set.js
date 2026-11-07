@@ -15,8 +15,8 @@ module.exports = {
             month = parseInt(args[1], 10);
         }
 
-        if (!day || !month || day > DAYS_IN_MONTH[month - 1]) {
-            return reply(ctx, { ...errorPanel('Fecha inválida', 'Especifica un día y mes válidos.'), ephemeral: true });
+        if (!Number.isInteger(day) || !Number.isInteger(month) || month < 1 || month > 12 || day < 1 || day > DAYS_IN_MONTH[month - 1]) {
+            return reply(ctx, { ...errorPanel('Fecha inválida', 'Especifica un día y mes válidos (1-12).'), ephemeral: true });
         }
 
         const userId = getUserId(ctx);

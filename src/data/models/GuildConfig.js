@@ -13,6 +13,10 @@ class GuildConfig extends Model {
             confessionsChannelId: { type: DataTypes.STRING, allowNull: true },
             birthdayChannelId: { type: DataTypes.STRING, allowNull: true },
             language: { type: DataTypes.STRING, allowNull: false, defaultValue: 'es' },
+            // Zona horaria IANA del servidor ("UTC" por defecto). La usan los
+            // módulos programados (cumpleaños a las 09:00 locales, etc.). La
+            // edita el dashboard (sección General) o /timezone del propio servidor.
+            timezone: { type: DataTypes.STRING, allowNull: false, defaultValue: 'UTC' },
             // Política de contenido del servidor. false = todo SFW (default).
             // Lo cambia /nsfw, que exige permiso de Manage Guild.
             nsfw: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },

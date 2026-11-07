@@ -38,6 +38,9 @@ module.exports = {
         await config.save();
         invalidateCache(ctx.guild.id);
 
+        const { sendHoneypotWarning } = require('../../../lib/honeypot');
+        await sendHoneypotWarning(channel, { guild: ctx.guild, action, timeoutMinutes: config.timeoutMinutes });
+
         return reply(ctx, successPanel('Honeypot activado', `${channel} es ahora el canal señuelo. Quien escriba en él: **${LABELS[action]}**.`, {
             lines: ['_El canal se ve normal, pero ningún humano debería usarlo: el topic pide no escribir._', 'Si un miembro legítimo escribe, se aplica la acción igualmente. Avísalo en tus canales.'],
         }));

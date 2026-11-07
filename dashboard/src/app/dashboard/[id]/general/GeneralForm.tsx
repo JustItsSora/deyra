@@ -9,7 +9,66 @@ import Toggle from '@/components/Toggle';
 import { textChannelOptions, NO_CHANNEL } from '@/lib/options';
 import type { GuildSection, BotChannel } from '@/lib/types';
 
-export default function GeneralForm({ guildId, initial, channels }: { guildId: string; initial: GuildSection; channels: BotChannel[] }) {
+const LANGUAGE_OPTIONS = [
+  { value: 'es', label: 'Español' },
+  { value: 'en-US', label: 'English' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'fr', label: 'Français' },
+  { value: 'pt-BR', label: 'Português' },
+  { value: 'ru', label: 'Русский' },
+];
+
+// Zonas IANA más comunes. La detección automática (botón) puede introducir
+// cualquier otra válida como opción dinámica.
+const TIMEZONE_OPTIONS = [
+  'UTC',
+  'America/Argentina/Buenos_Aires',
+  'America/Asuncion',
+  'America/Bogota',
+  'America/Caracas',
+  'America/Cancun',
+  'America/La_Paz',
+  'America/Lima',
+  'America/Mexico_City',
+  'America/Montevideo',
+  'America/New_York',
+  'America/Toronto',
+  'America/Chicago',
+  'America/Denver',
+  'America/Los_Angeles',
+  'America/Sao_Paulo',
+  'America/Santiago',
+  'Europe/Madrid',
+  'Europe/London',
+  'Europe/Lisbon',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'Europe/Amsterdam',
+  'Europe/Brussels',
+  'Europe/Rome',
+  'Europe/Vienna',
+  'Europe/Warsaw',
+  'Europe/Athens',
+  'Europe/Moscow',
+  'Africa/Casablanca',
+  'Africa/Cairo',
+  'Africa/Johannesburg',
+  'Asia/Dubai',
+  'Asia/Jerusalem',
+  'Asia/Kolkata',
+  'Asia/Dhaka',
+  'Asia/Bangkok',
+  'Asia/Shanghai',
+  'Asia/Hong_Kong',
+  'Asia/Singapore',
+  'Asia/Tokyo',
+  'Asia/Seoul',
+  'Australia/Sydney',
+  'Australia/Melbourne',
+  'Pacific/Auckland',
+].map((value) => ({ value, label: value }));
+
+export default function GeneralForm({ guildId, initial, channels }: { guildId: string; initial: GuildSection & { timezone?: string }; channels: BotChannel[] }) {
   const { state, update, dirty, saving, save, discard, toast, dismissToast } = useSectionForm({
     guildId,
     section: 'guild',
@@ -19,6 +78,16 @@ export default function GeneralForm({ guildId, initial, channels }: { guildId: s
   const ch = textChannelOptions(channels);
   const setChannel = (key: 'suggestionsChannelId' | 'confessionsChannelId' | 'birthdayChannelId') => (v: string) =>
     update(key, v === NO_CHANNEL ? null : v);
+
+  const detectedTz = typeof window !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : '';
+  const storedTz = state.timezone ?? 'UTC';
+  const extras = [storedTz, detectedTz].filter(
+    (tz): tz is string => Boolean(tz) && !TIMEZONE_OPTIONS.some((o) => o.value === tz),
+  );
+  const timezoneOptions = [
+    ...extras.map((value) => ({ value, label: value })),
+    ...TIMEZONE_OPTIONS,
+  ];
 
   return (
     <>
@@ -80,6 +149,40 @@ export default function GeneralForm({ guildId, initial, channels }: { guildId: s
           <Toggle checked={state.nsfw} onChange={(v) => update('nsfw', v)} label="Modo NSFW" />
         </div>
       </div>
+      </section>
+
+      <section className="panel" aria-label="Idioma y zona horaria">
+        <div className="panel-head"><div><h2 className="panel-title">Idioma y zona horaria</h2>
+          <p className="panel-desc">El idioma se usa en los avisos del bot (por ejemplo, el del honeypot). La zona horaria sincroniza los módulos programados, como los cumpleaños (09:00 locales).</p></div></div>
+        <div className="panel-body">
+        <div className="setting-row">
+          <span>
+            <span className="label">Idioma del servidor</span>
+            <span className="desc">El bot lo detecta al unirse. Puedes cambiarlo aquí.</span>
+          </span>
+          <div className="control">
+            <Listbox value={state.language} options={LANGUAGE_OPTIONS} onChange={(v) => update('language', v)} ariaLabel="Idioma del servidor" />
+          </div>
+        </div>
+        <div className="setting-row">
+          <span>
+            <span className="label">Zona horaria (UTC)</span>
+            <span className="desc">Los módulos programados del bot funcionan según esta zona.</span>
+          </span>
+          <div className="control">
+            <Listbox value={state.timezone ?? 'UTC'} options={timezoneOptions} onChange={(v) => update('timezone', v)} ariaLabel="Zona horaria del servidor" />
+          </div>
+        </div>
+        <div className="setting-row">
+          <span>
+            <span className="label">Zona automática</span>
+            <span className="desc">Usa la de este navegador ({detectedTz || 'desconocida'}).</span>
+          </span>
+          <button type="button" className="btn btn-subtle" onClick={() => detectedTz && update('timezone', detectedTz)} disabled={!detectedTz}>
+            Usar mi zona
+          </button>
+        </div>
+        </div>
       </section>
 
       {state.nsfw && (

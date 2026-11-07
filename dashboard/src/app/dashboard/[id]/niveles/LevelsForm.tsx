@@ -53,7 +53,7 @@ export default function LevelsForm({
   const [rewardRole, setRewardRole] = useState('');
   const [rewardLevel, setRewardLevel] = useState(5);
 
-  const rewardEntries = Object.entries(state.roleRewards)
+  const rewardEntries = Object.entries(state.roleRewards ?? {})
     .map(([level, roleId]) => ({ level: Number(level), roleId }))
     .sort((a, b) => a.level - b.level);
 

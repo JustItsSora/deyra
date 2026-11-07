@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Bug, Info, RefreshCw, ShieldAlert } from 'lucide-react';
 import { useSectionForm } from '@/lib/useSectionForm';
 import SaveBar from '@/components/SaveBar';
@@ -9,6 +10,10 @@ import Toggle from '@/components/Toggle';
 import { channelOptions, NO_CHANNEL } from '@/lib/options';
 import type { HoneypotSection, BotChannel } from '@/lib/types';
 
+// El bot expone rotationMinutes; el tipo local aún no lo incluye (types.ts es
+// compartido), así que se normaliza al cargar.
+type HoneypotInitial = HoneypotSection & { rotationMinutes?: number; rotationHours?: number };
+
 const ACTION_OPTIONS = [
   { value: 'timeout', label: 'Silenciar (timeout)', hint: 'No puede escribir durante la duración elegida' },
   { value: 'kick', label: 'Expulsar (kick)', hint: 'Puede volver con una nueva invitación' },
@@ -17,27 +22,54 @@ const ACTION_OPTIONS = [
 
 const ROTATION_OPTIONS = [
   { value: '0', label: 'Desactivada' },
-  { value: '6', label: 'Cada 6 horas' },
-  { value: '12', label: 'Cada 12 horas' },
-  { value: '24', label: 'Cada 24 horas' },
-  { value: '48', label: 'Cada 2 días' },
-  { value: '72', label: 'Cada 3 días' },
-  { value: '168', label: 'Cada 7 días' },
+  { value: '20', label: 'Cada 20 minutos' },
+  { value: '60', label: 'Cada hora' },
+  { value: '120', label: 'Cada 2 horas' },
+  { value: '360', label: 'Cada 6 horas' },
+  { value: '720', label: 'Cada 12 horas' },
+  { value: '1440', label: 'Cada 24 horas' },
+  { value: '4320', label: 'Cada 3 días' },
+  { value: '10080', label: 'Cada 7 días' },
 ];
+
+function formatRotation(minutes: number): string {
+  if (!minutes) return 'off';
+  if (minutes < 60) return `cada ${minutes}m`;
+  if (minutes % 1440 === 0) return `cada ${minutes / 1440}d`;
+  if (minutes % 60 === 0) return `cada ${minutes / 60}h`;
+  return `cada ${(minutes / 60).toFixed(1)}h`;
+}
+
+const LANG_LABELS: Record<string, string> = {
+  es: 'Español',
+  en: 'English',
+  'en-US': 'English',
+  de: 'Deutsch',
+  fr: 'Français',
+  pt: 'Português',
+  'pt-BR': 'Português',
+  ru: 'Русский',
+};
 
 export default function HoneypotForm({
   guildId,
   initial,
   channels,
+  language,
 }: {
   guildId: string;
-  initial: HoneypotSection;
+  initial: HoneypotInitial;
   channels: BotChannel[];
+  language?: string | null;
 }) {
+  const normalized = {
+    ...initial,
+    rotationMinutes: initial.rotationMinutes ?? (initial.rotationHours ?? 0) * 60,
+  };
   const { state, update, dirty, saving, save, discard, toast, dismissToast } = useSectionForm({
     guildId,
     section: 'honeypot',
-    initial,
+    initial: normalized,
   });
 
   return (
@@ -50,7 +82,7 @@ export default function HoneypotForm({
         </div>
         <div className="metric">
           <div className="k"><RefreshCw size={14} aria-hidden="true" /> Rotación del canal</div>
-          <div className="v">{state.rotationHours > 0 ? `cada ${state.rotationHours}h` : 'off'}</div>
+          <div className="v">{formatRotation(state.rotationMinutes)}</div>
           <div className="sub">{state.lastRotationAt ? `última hace ${timeAgo(state.lastRotationAt)}` : 'nunca rotado'}</div>
         </div>
       </div>
@@ -129,13 +161,13 @@ export default function HoneypotForm({
         <div className="setting-row">
           <span>
             <span className="label">Rotación del nombre</span>
-            <span className="desc">Cambia el nombre del canal cada N horas para no ser predecible.</span>
+            <span className="desc">Cambia el nombre del canal cada N minutos para no ser predecible.</span>
           </span>
           <div className="control-sm">
             <Listbox
-              value={String(state.rotationHours)}
+              value={String(state.rotationMinutes)}
               options={ROTATION_OPTIONS}
-              onChange={(v) => update('rotationHours', Number(v))}
+              onChange={(v) => update('rotationMinutes', Number(v))}
               ariaLabel="Rotación del nombre del canal"
             />
           </div>
@@ -143,6 +175,13 @@ export default function HoneypotForm({
         </div>
       </section>
 
+      <div className="callout mt" role="note">
+        <Info className="icon" aria-hidden="true" />
+        <span>
+          <strong>Idioma del servidor:</strong> {language ? (LANG_LABELS[language] ?? language) : 'detectándose…'}. El aviso que se publica en el canal señuelo se enviará en ese idioma.
+          {' '}<Link className="text-link" href={`/dashboard/${guildId}/general`}>Cambiar idioma y zona horaria</Link>.
+        </span>
+      </div>
       <div className="callout mt" role="note">
         <Info className="icon" aria-hidden="true" />
         <span><strong>Cómo funciona:</strong> el canal se ve normal pero nadie legítimo lo usa. Cualquier cuenta que escriba ahí — humana o bot — ejecuta su propia sentencia. El dueño y quien tenga permiso de gestión nunca son castigados.</span>

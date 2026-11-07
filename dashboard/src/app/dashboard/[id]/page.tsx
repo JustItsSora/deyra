@@ -36,10 +36,11 @@ export default async function GuildOverview({ params }: { params: Promise<{ id: 
   }
   if (!overview) return <AccessNotice kind="bot-offline" />;
 
+  const sec = overview.security ?? { automod: false, honeypot: false, antinuke: false };
   const protectionItems = [
-    { href: '/automod', icon: ShieldCheck, name: 'Automod', desc: 'Filtro de spam, enlaces, menciones y mayúsculas', on: overview.security.automod, onText: 'Activo', offText: 'Desactivado' },
-    { href: '/honeypot', icon: Radar, name: 'Honeypot', desc: 'Canal señuelo para atrapar raids y bots', on: overview.security.honeypot, onText: 'Activo', offText: 'Desactivado' },
-    { href: '/seguridad', icon: Zap, name: 'Anti-nuke', desc: 'Vigilancia del audit log contra ráfagas destructivas', on: overview.security.antinuke, onText: 'Activo', offText: 'Desactivado' },
+    { href: '/automod', icon: ShieldCheck, name: 'Automod', desc: 'Filtro de spam, enlaces, menciones y mayúsculas', on: Boolean(sec.automod), onText: 'Activo', offText: 'Desactivado' },
+    { href: '/honeypot', icon: Radar, name: 'Honeypot', desc: 'Canal señuelo para atrapar raids y bots', on: Boolean(sec.honeypot), onText: 'Activo', offText: 'Desactivado' },
+    { href: '/seguridad', icon: Zap, name: 'Anti-nuke', desc: 'Vigilancia del audit log contra ráfagas destructivas', on: Boolean(sec.antinuke), onText: 'Activo', offText: 'Desactivado' },
   ];
 
   const quickLinks = [

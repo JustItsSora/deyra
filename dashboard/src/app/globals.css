@@ -822,7 +822,7 @@ a { color: inherit; }
 .control-lg { min-width: 220px; max-width: 360px; width: 100%; }
 @media (max-width: 560px) {
   .setting-row { flex-wrap: wrap; }
-  .setting-row > *:last-child { width: 100%; max-width: none; }
+  .setting-row > *:last-child:not(.switch) { width: 100%; max-width: none; }
   .control, .control-sm, .control-lg { min-width: 0; max-width: none; }
 }
 

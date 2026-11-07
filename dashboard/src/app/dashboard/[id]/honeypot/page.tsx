@@ -14,7 +14,7 @@ export default async function HoneypotPage({ params }: { params: Promise<{ id: s
   return (
     <main className="content">
       <PageHead title="Honeypot" description="Un canal señuelo para bots de raid y spammers automáticos. Quien escribe ahí, no vuelve." />
-      <HoneypotForm guildId={id} initial={bundle.honeypot} channels={channels} />
+      <HoneypotForm guildId={id} initial={bundle.honeypot} channels={channels} language={bundle.guild?.language ?? null} />
     </main>
   );
 }

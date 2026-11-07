@@ -1,3 +1,5 @@
+import 'server-only';
+
 // Cliente server-side para la API admin del bot. NUNCA se importa en
 // componentes de cliente: BOT_API_KEY es un secreto.
 

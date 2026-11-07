@@ -1,3 +1,4 @@
+import 'server-only';
 import { cache } from 'react';
 import { getSession } from './auth';
 import { fetchUserGuilds, hasAdminAccess, type DiscordGuild } from './discord';
@@ -35,7 +36,8 @@ export const getAdministeredGuilds = cache(async (): Promise<AdminGuildsResult> 
   } catch (err) {
     if (err instanceof BotApiError && err.status === 401) {
       // La key no matchea: es un error de configuración, no "bot caído".
-      throw new Error('BOT_API_KEY no coincide con la ADMIN_API_KEY configurada en el bot.');
+      console.error('[guilds] BOT_API_KEY no coincide con ADMIN_API_KEY del bot.');
+      return { status: 'bot-offline' };
     }
     return { status: 'bot-offline' };
   }

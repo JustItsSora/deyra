@@ -1,3 +1,5 @@
+import 'server-only';
+
 export type DiscordUser = {
   id: string;
   username: string;

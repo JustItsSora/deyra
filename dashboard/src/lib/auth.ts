@@ -1,3 +1,4 @@
+import 'server-only';
 import { createHash } from 'crypto';
 import { EncryptJWT, jwtDecrypt } from 'jose';
 import { cookies } from 'next/headers';

@@ -30,7 +30,13 @@ export async function GET(req: NextRequest) {
     });
 
     const res = NextResponse.redirect(new URL('/dashboard', req.url));
-    res.cookies.delete(OAUTH_STATE_COOKIE);
+    res.cookies.set(OAUTH_STATE_COOKIE, '', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 0,
+    });
     return res;
   } catch (err) {
     console.error('[auth/callback]', err);

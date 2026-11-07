@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Info } from 'lucide-react';
 import { useSectionForm } from '@/lib/useSectionForm';
 import SaveBar from '@/components/SaveBar';
@@ -32,7 +33,7 @@ export default function WelcomeForm({
         <div className="setting-row">
           <span>
             <span className="label">Bienvenidas activas</span>
-            <span className="desc">Mensaje y tarjeta cuando alguien se une al servidor.</span>
+            <span className="desc">Mensaje al entrar y al salir del servidor.</span>
           </span>
           <Toggle checked={state.welcomeEnabled} onChange={(v) => update('welcomeEnabled', v)} label="Bienvenidas activas" />
         </div>
@@ -50,14 +51,6 @@ export default function WelcomeForm({
               ariaLabel="Canal de bienvenida"
             />
           </div>
-        </div>
-
-        <div className="setting-row">
-          <span>
-            <span className="label">Tarjeta de bienvenida</span>
-            <span className="desc">Imagen generada con el avatar y el nombre del miembro.</span>
-          </span>
-          <Toggle checked={state.welcomeCardEnabled} onChange={(v) => update('welcomeCardEnabled', v)} label="Tarjeta de bienvenida" />
         </div>
 
         <div className="field" style={{ paddingTop: 14 }}>
@@ -115,7 +108,7 @@ export default function WelcomeForm({
 
       <div className="callout mt" role="note">
         <Info className="icon" aria-hidden="true" />
-        <span>Los autorroles se siguen configurando con <code>/autorole</code> en Discord; el panel aún no los edita.</span>
+        <span>Los autorroles se configuran en <Link href={`/dashboard/${guildId}/autorole`} style={{ color: 'var(--accent-hover)' }}>Autorole</Link>, en este mismo panel.</span>
       </div>
 
       <SaveBar visible={dirty} saving={saving} onSave={save} onDiscard={discard} />

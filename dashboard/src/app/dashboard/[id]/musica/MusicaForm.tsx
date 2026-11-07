@@ -54,6 +54,10 @@ export default function MusicaForm({
   const voiceChannels = voiceChannelOptions(channels);
   const textChannels = textChannelOptions(channels);
   const fairplayRoles = roleOptions(roles);
+  // Un canal borrado deja el ID guardado pero ya no está en la lista: se
+  // muestra vacío y se pide elegir uno para que el guardado no falle.
+  const voice247 = channels.some((c) => c.id === state.voice247Id) ? state.voice247Id : null;
+  const voice247Missing = state.twentyFourSeven && !voice247;
 
   return (
     <>
@@ -130,10 +134,10 @@ export default function MusicaForm({
           {state.twentyFourSeven && (
             <>
               <div className="setting-row">
-                <span><span className="label">Canal de voz 24/7</span><span className="desc">Dónde vive el bot de forma permanente.</span></span>
+                <span><span className="label">Canal de voz 24/7</span><span className="desc">Dónde vive el bot de forma permanente. Si ya está en otro canal, se mueve aquí al guardar.</span></span>
                 <div style={{ minWidth: 210, maxWidth: 320, width: '100%' }}>
                   <Listbox
-                    value={state.voice247Id ?? NO_CHANNEL}
+                    value={voice247 ?? NO_CHANNEL}
                     options={voiceChannels}
                     onChange={(v) => update('voice247Id', v === NO_CHANNEL ? null : v)}
                     ariaLabel="Canal de voz 24/7"
@@ -155,6 +159,9 @@ export default function MusicaForm({
             </>
           )}
         </div>
+        {voice247Missing && (
+          <p className="error-text mt" role="alert">Elige un canal de voz para el modo 24/7. Sin canal, el bot no tiene dónde quedarse.</p>
+        )}
       </section>
 
       <section className="section-block" aria-label="Límites">

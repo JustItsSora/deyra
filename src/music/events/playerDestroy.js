@@ -11,6 +11,9 @@ module.exports = {
       const existingTimeout = player.data?.get('disconnectTimeout');
       if (existingTimeout) clearTimeout(existingTimeout);
 
+      const emptyTimeout = player.data?.get('emptyChannelTimeout');
+      if (emptyTimeout) clearTimeout(emptyTimeout);
+
       const msg = player.data?.get('message');
       if (msg?.deletable) await msg.delete().catch(() => {});
 

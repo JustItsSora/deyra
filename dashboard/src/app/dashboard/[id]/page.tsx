@@ -42,7 +42,7 @@ export default async function GuildOverview({ params }: { params: Promise<{ id: 
   ];
 
   const quickLinks = [
-    { href: '/general', icon: Settings2, label: 'General', desc: 'Prefijo e idioma' },
+    { href: '/general', icon: Settings2, label: 'General', desc: 'Prefijo y canales' },
     { href: '/automod', icon: ShieldCheck, label: 'Automod', desc: 'Filtros y escalada' },
     { href: '/honeypot', icon: Radar, label: 'Honeypot', desc: 'Canal señuelo' },
     { href: '/seguridad', icon: Zap, label: 'Anti-nuke', desc: 'Vigilancia audit log' },
@@ -50,7 +50,7 @@ export default async function GuildOverview({ params }: { params: Promise<{ id: 
     { href: '/niveles', icon: TrendingUp, label: 'Niveles', desc: 'XP y recompensas' },
     { href: '/autorole', icon: UserRoundPlus, label: 'Autorole', desc: 'Roles al entrar' },
     { href: '/musica', icon: Music, label: 'Música', desc: 'Reproductor y 24/7' },
-    { href: '/bienvenida', icon: DoorOpen, label: 'Bienvenidas', desc: 'Mensajes y tarjetas' },
+    { href: '/bienvenida', icon: DoorOpen, label: 'Bienvenidas', desc: 'Entradas y salidas' },
     { href: '/registros', icon: ScrollText, label: 'Registros', desc: 'Canales de log' },
   ];
 

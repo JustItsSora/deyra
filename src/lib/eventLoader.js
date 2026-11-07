@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Subcarpetas de src/gateway/ que exportan { init(client) } en vez de { name, execute }.
-const EVENT_FEATURE_DIRS = ['automod', 'leveling', 'welcome', 'honeypot', 'antinuke', 'logging'];
+const EVENT_FEATURE_DIRS = ['automod', 'leveling', 'welcome', 'honeypot', 'antinuke', 'logging', 'music'];
 
 function loadSimpleEvents(client, gatewayPath) {
     if (!fs.existsSync(gatewayPath)) return;

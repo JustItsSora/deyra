@@ -63,7 +63,29 @@ async function revive247(client, row) {
     // Ya está sonando: nada que hacer. Ojo, que "exista el player" no alcanza:
     // puede estar creado pero desconectado del canal (el caso que nos duele).
     const player = client.music?.players?.get(row.guildId);
-    if (player && player.voiceId === row.voice247Id && player.state !== 'DESTROYED') return;
+    if (player && player.state !== 'DESTROYED') {
+        const settings = settingsFromRow(row, { ...defaults(), twentyFourSeven: true });
+
+        if (player.voiceId === row.voice247Id) {
+            // Sigue en el canal correcto: se re-aplica por si quedó stay247 en
+            // falso (p. ej. el bot se reconectó y perdió player.data).
+            applySettingsToPlayer(player, settings);
+            player.data.set('stay247', true);
+            return;
+        }
+
+        // Está en otro canal: moverlo es una sola op de voz. Antes se intentaba
+        // crear un segundo player para el mismo guild, que falla siempre.
+        try {
+            player.setVoiceChannel(row.voice247Id);
+            applySettingsToPlayer(player, settings);
+            player.data.set('stay247', true);
+            console.log(`[music] 24/7 movido a ${row.voice247Id} en ${guild.name}.`);
+        } catch (err) {
+            console.error(`[music] No se pudo mover el player 24/7 de ${row.guildId}:`, err.message);
+        }
+        return;
+    }
 
     if (!client.music) return; // música no configurada en este arranque
 

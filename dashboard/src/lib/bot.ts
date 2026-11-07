@@ -23,6 +23,8 @@ function apiKey(): string {
   return key;
 }
 
+const REQUEST_TIMEOUT_MS = 12_000;
+
 async function botFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${baseUrl()}/api/v1${path}`, {
     ...init,
@@ -32,6 +34,8 @@ async function botFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
       ...(init.headers || {}),
     },
     cache: 'no-store',
+    // Sin tope, una página queda colgada hasta que Vercel corta la función.
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
 
   if (!res.ok) {

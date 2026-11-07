@@ -27,6 +27,7 @@ export default function TicketsForm({
   });
 
   const textChannels = textChannelOptions(channels);
+  const panelChannel = channels.find((c) => c.id === state.panelChannelId);
   const supportRoles = roles.filter((r) => !r.managed && !r.isEveryone).map((r) => ({ id: r.id, label: `@${r.name}`, color: r.color !== '#000000' ? r.color : undefined }));
 
   return (
@@ -59,12 +60,10 @@ export default function TicketsForm({
         <div className="cols cols-2 mt">
           <div className="field">
             <span className="label">Canal del panel</span>
-            <Listbox
-              value={state.panelChannelId ?? NO_CHANNEL}
-              options={textChannels}
-              onChange={(v) => update('panelChannelId', v === NO_CHANNEL ? null : v)}
-              ariaLabel="Canal donde se publica el panel de tickets"
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span className="pill" style={{ alignSelf: 'flex-start' }}>{panelChannel ? `#${panelChannel.name}` : 'Sin publicar'}</span>
+              <span className="hint">Último canal donde se publicó. Se publica o mueve con /ticket panel.</span>
+            </div>
           </div>
           <div className="field">
             <span className="label">Categoría de los tickets</span>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ToastData } from '@/components/Toast';
 
 type Options<T extends object> = {
@@ -14,6 +15,7 @@ type Options<T extends object> = {
  * cambios, guardado (PATCH same-origin) y toast de resultado.
  */
 export function useSectionForm<T extends object>({ guildId, section, initial }: Options<T>) {
+  const router = useRouter();
   const [saved, setSaved] = useState<T>(initial);
   const [state, setState] = useState<T>(initial);
   const [saving, setSaving] = useState(false);
@@ -48,14 +50,27 @@ export function useSectionForm<T extends object>({ guildId, section, initial }: 
         setToast({ kind: 'err', text: data?.message || `No se pudo guardar (HTTP ${res.status}).` });
         return;
       }
-      setSaved(state);
+      // El bot puede normalizar valores o crear recursos al guardar (p. ej. el
+      // canal del honeypot). Se adopta lo que devolvió para no mostrar un
+      // estado que ya no coincide con el suyo.
+      const next = { ...state } as Record<string, unknown>;
+      if (data && typeof data === 'object') {
+        for (const key of Object.keys(state) as (keyof T)[]) {
+          if (key in data) next[key as string] = data[key as keyof T];
+        }
+      }
+      setSaved(next as T);
+      setState(next as T);
       setToast({ kind: 'ok', text: 'Configuración guardada.' });
+      // Refresca los datos del servidor (canales, roles) para que lo recién
+      // creado aparezca en los selectores sin recargar la página.
+      router.refresh();
     } catch {
       setToast({ kind: 'err', text: 'Sin conexión con el panel. Revisa tu red.' });
     } finally {
       setSaving(false);
     }
-  }, [guildId, section, state]);
+  }, [guildId, section, state, router]);
 
   const dismissToast = useCallback(() => setToast(null), []);
 

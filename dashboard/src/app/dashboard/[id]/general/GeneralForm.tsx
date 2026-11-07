@@ -9,11 +9,6 @@ import Toggle from '@/components/Toggle';
 import { textChannelOptions, NO_CHANNEL } from '@/lib/options';
 import type { GuildSection, BotChannel } from '@/lib/types';
 
-const LANGUAGE_OPTIONS = [
-  { value: 'es', label: 'Español' },
-  { value: 'en', label: 'English' },
-];
-
 export default function GeneralForm({ guildId, initial, channels }: { guildId: string; initial: GuildSection; channels: BotChannel[] }) {
   const { state, update, dirty, saving, save, discard, toast, dismissToast } = useSectionForm({
     guildId,
@@ -42,21 +37,6 @@ export default function GeneralForm({ guildId, initial, channels }: { guildId: s
             aria-label="Prefijo personalizado"
             onChange={(e) => update('prefix', e.target.value.trim() === '' ? null : e.target.value)}
           />
-        </div>
-
-        <div className="setting-row">
-          <span>
-            <span className="label">Idioma del bot</span>
-            <span className="desc">Idioma de las respuestas y paneles en este servidor.</span>
-          </span>
-          <div style={{ minWidth: 170 }}>
-            <Listbox
-              value={state.language}
-              options={LANGUAGE_OPTIONS}
-              onChange={(v) => update('language', v)}
-              ariaLabel="Idioma del bot"
-            />
-          </div>
         </div>
 
         <div className="setting-row">

@@ -44,9 +44,11 @@ async function handleJoin(member) {
 
 async function handleLeave(member) {
     const config = await WelcomeConfig.findOne({ where: { guildId: member.guild.id } });
-    if (!config?.leaveEnabled || !config.leaveChannelId) return;
+    // El panel promete "vacío = el mismo canal de bienvenida"; se cumple acá.
+    const channelId = config?.leaveChannelId || config?.welcomeChannelId;
+    if (!config?.leaveEnabled || !channelId) return;
 
-    const channel = await member.guild.channels.fetch(config.leaveChannelId).catch(() => null);
+    const channel = await member.guild.channels.fetch(channelId).catch(() => null);
     if (!channel) return;
 
     const text = fillPlaceholders(config.leaveMessage || '{user} ha dejado el servidor.', { member, guild: member.guild });

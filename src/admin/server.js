@@ -18,13 +18,14 @@
 // Variables de entorno: ADMIN_API_KEY, ADMIN_PORT (SERVER_PORT tiene
 // prioridad en bot-hosting.net), DASHBOARD_ORIGIN.
 
-const { ChannelType } = require('discord.js');
+const { ChannelType, PermissionsBitField } = require('discord.js');
 
 const http = require('http');
 const crypto = require('crypto');
 const config = require('../config');
 const { GuildConfig, AutomodConfig, HoneypotConfig, AntiNukeConfig, WelcomeConfig, Warn, LevelConfig, TicketConfig, MusicConfig, AutoRole } = require('../data/models');
 const { ensureHoneypotChannel } = require('../lib/honeypot');
+const { getMusicConfig, invalidateMusicConfig, applySettingsToPlayer } = require('../music/lib/musicConfig');
 
 const MAX_BODY = 64 * 1024;
 const RATE_LIMIT = 60;
@@ -161,7 +162,6 @@ function applyPatch(instance, patch, rules) {
     return { applied };
 }
 
-const idOrNull = (v) => (v === null || v === undefined || v === '' ? null : (isSnowflake(v) ? v : undefined));
 const enumOf = (...allowed) => (v) => (allowed.includes(v) ? v : undefined);
 
 // ── Serializadores ────────────────────────────────────────────────────────
@@ -306,12 +306,20 @@ function guildJson(cfg) {
 
 // ── Aplicación de patches ─────────────────────────────────────────────────
 
-async function patchAutomod(guildId, patch) {
+async function patchAutomod(guild, patch) {
+    const guildId = guild.id;
     const allowed = ['enabled','antiInvite','antiLink','antiSpam','antiMention','antiCaps','antiBadWords','aiModeration','maxMentions','spamMessageCount','spamIntervalSeconds','capsPercentThreshold','punishmentAction','escalationAction','escalationThreshold','badWordsList','whitelistedChannels','whitelistedRoles','linkAllowlist','logChannelId'];
     for (const key of Object.keys(patch)) {
         if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
     }
     const [cfg] = await AutomodConfig.findOrCreate({ where: { guildId }, defaults: { guildId } });
+
+    const textChannelRule = (v) => {
+        if (v === null || v === '') return null;
+        if (!isSnowflake(v)) return undefined;
+        const ch = guild.channels.cache.get(v);
+        return ch && ch.isTextBased?.() ? v : undefined;
+    };
 
     const rules = {
         enabled: boolRule, antiInvite: boolRule, antiLink: boolRule, antiSpam: boolRule,
@@ -327,7 +335,7 @@ async function patchAutomod(guildId, patch) {
         whitelistedChannels: v => { const a = asSnowflakeArray(v); return a ? JSON.stringify(a) : undefined; },
         whitelistedRoles: v => { const a = asSnowflakeArray(v); return a ? JSON.stringify(a) : undefined; },
         linkAllowlist: v => { const a = asDomainArray(v); return a ? JSON.stringify(a) : undefined; },
-        logChannelId: idOrNull,
+        logChannelId: textChannelRule,
     };
 
     const result = applyPatch(cfg, patch, rules);
@@ -361,9 +369,14 @@ async function patchHoneypot(guild, patch) {
     const result = applyPatch(cfg, patch, rules);
     if (result.error) return { error: `invalid value for: ${result.error}` };
 
-    // Al activar y no tener canal: crear uno propio con nombre señuelo.
-    // Si el bot no puede crear canales, se reporta y no se activa a medias.
+    // Al activar y no tener canal (o tener uno ya borrado): crear uno propio
+    // con nombre señuelo. Si el bot no puede crear canales, se reporta y no se
+    // activa a medias.
     let createdChannel = null;
+    if (cfg.enabled && cfg.channelId) {
+        const stored = guild.channels.cache.get(cfg.channelId);
+        if (!stored || !stored.isTextBased?.()) cfg.channelId = null;
+    }
     if (cfg.enabled && !cfg.channelId) {
         try {
             const created = await ensureHoneypotChannel(guild);
@@ -381,7 +394,8 @@ async function patchHoneypot(guild, patch) {
     return { data: { ...honeypotJson(cfg), createdChannel } };
 }
 
-async function patchAntiNuke(guildId, patch) {
+async function patchAntiNuke(guild, patch) {
+    const guildId = guild.id;
     const allowed = ['enabled', 'action', 'threshold', 'windowMinutes', 'whitelistedUsers', 'whitelistedRoles'];
     for (const key of Object.keys(patch)) {
         if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
@@ -394,7 +408,12 @@ async function patchAntiNuke(guildId, patch) {
         threshold: v => asInt(v, 1, 20) ?? undefined,
         windowMinutes: v => asInt(v, 1, 120) ?? undefined,
         whitelistedUsers: v => { const a = asSnowflakeArray(v); return a ? JSON.stringify(a) : undefined; },
-        whitelistedRoles: v => { const a = asSnowflakeArray(v); return a ? JSON.stringify(a) : undefined; },
+        // Roles borrados se descartan en vez de dejar una lista blanca muerta.
+        whitelistedRoles: v => {
+            const a = asSnowflakeArray(v);
+            if (!a) return undefined;
+            return JSON.stringify(a.filter(id => guild.roles.cache.has(id)));
+        },
     };
 
     const result = applyPatch(cfg, patch, rules);
@@ -416,7 +435,7 @@ async function patchWelcome(guild, patch) {
         if (v === null) return null;
         if (!isSnowflake(v)) return undefined;
         const channel = guild.channels.cache.get(v);
-        return channel ? v : undefined;
+        return channel && channel.isTextBased?.() ? v : undefined;
     };
     const rules = {
         welcomeEnabled: boolRule,
@@ -449,17 +468,24 @@ function asSnowflakeMap(v, maxEntries = 100, maxLevel = 1000) {
     return Object.fromEntries(Object.entries(out).sort((a, b) => Number(a[0]) - Number(b[0])));
 }
 
-async function patchLevels(guildId, patch) {
+async function patchLevels(guild, patch) {
+    const guildId = guild.id;
     const allowed = ['enabled', 'announceLevelUp', 'announceChannelId', 'xpPerMessageMin', 'xpPerMessageMax', 'xpCooldownSeconds', 'roleRewards', 'ignoredChannels'];
     for (const key of Object.keys(patch)) {
         if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
     }
     const [cfg] = await LevelConfig.findOrCreate({ where: { guildId }, defaults: { guildId } });
 
+    const channelRule = (v) => {
+        if (v === null || v === '') return null;
+        if (!isSnowflake(v)) return undefined;
+        const ch = guild.channels.cache.get(v);
+        return ch && ch.isTextBased?.() ? v : undefined;
+    };
     const rules = {
         enabled: boolRule,
         announceLevelUp: boolRule,
-        announceChannelId: idOrNull,
+        announceChannelId: channelRule,
         xpPerMessageMin: v => asInt(v, 1, 200) ?? undefined,
         xpPerMessageMax: v => asInt(v, 1, 200) ?? undefined,
         xpCooldownSeconds: v => asInt(v, 0, 3600) ?? undefined,
@@ -501,7 +527,11 @@ async function patchTickets(guild, patch) {
         categoryId: categoryRule,
         panelChannelId: textChannelRule,
         logChannelId: textChannelRule,
-        supportRoleIds: v => { const a = asSnowflakeArray(v, 20); return a ? JSON.stringify(a) : undefined; },
+        supportRoleIds: v => {
+            const a = asSnowflakeArray(v, 20);
+            if (!a) return undefined;
+            return JSON.stringify(a.filter(id => guild.roles.cache.has(id)));
+        },
         welcomeMessage: v => (v === null ? null : (typeof v === 'string' && v.trim().length <= 500 ? (v.trim() || null) : undefined)),
         panelTitle: v => (typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 80 ? v.trim() : undefined),
         panelDescription: v => (typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 200 ? v.trim() : undefined),
@@ -533,12 +563,17 @@ async function patchMusic(guild, patch) {
         const ch = guild.channels.cache.get(v);
         return ch && ch.isTextBased?.() ? v : undefined;
     };
+    const roleRule = (v) => {
+        if (v === null || v === '') return null;
+        if (!isSnowflake(v)) return undefined;
+        return guild.roles.cache.has(v) ? v : undefined;
+    };
 
     const rules = {
         defaultVolume: v => asInt(v, 0, 100) ?? undefined,
         defaultAutoplay: boolRule,
         defaultFairplay: boolRule,
-        fairplayRoleId: idOrNull,
+        fairplayRoleId: roleRule,
         twentyFourSeven: boolRule,
         voice247Id: voiceRule,
         text247Id: textRule,
@@ -551,20 +586,98 @@ async function patchMusic(guild, patch) {
 
     const result = applyPatch(cfg, patch, rules);
     if (result.error) return { error: `invalid value for: ${result.error}` };
+
+    // 24/7 sin un canal de voz válido no se puede cumplir: se rechaza en vez
+    // de guardar un ajuste que el cron va a ignorar para siempre.
+    if (cfg.twentyFourSeven) {
+        const voice = cfg.voice247Id ? guild.channels.cache.get(cfg.voice247Id) : null;
+        const usable = voice && (voice.type === ChannelType.GuildVoice || voice.type === ChannelType.GuildStageVoice);
+        if (!usable) return { error: 'elige un canal de voz para el modo 24/7' };
+        const me = guild.members.me;
+        const canConnect = !me || voice.permissionsFor(me)?.has(PermissionsBitField.Flags.Connect);
+        if (!canConnect) return { error: 'el bot no puede entrar a ese canal de voz (falta el permiso Conectar)' };
+    }
+
     await cfg.save();
+
+    // El motor de música cachea los ajustes 60s: sin invalidar, el panel
+    // mostraba "guardado" y el bot seguía con los valores viejos hasta un
+    // minuto después. Además se aplica al player vivo (o se entra al canal si
+    // el 24/7 se acaba de activar) para que el cambio se note al instante.
+    invalidateMusicConfig(guild.id);
+    const settings = await getMusicConfig(guild.id, { fresh: true });
+    // No se espera al nodo de voz: el guardado ya está hecho y conectarse
+    // puede tardar; si falla, el cron de 24/7 lo reintenta.
+    applyMusicRuntime(guild, settings).catch((err) => {
+        console.error('[admin/music] Error aplicando ajustes al runtime:', err.message);
+    });
+
     return { data: musicJson(cfg) };
 }
 
-async function patchAutorole(guildId, patch) {
+/**
+ * Lleva los ajustes de música al runtime: si hay un player vivo le aplica el
+ * cambio (y lo mueve si el 24/7 apunta a otro canal); si no hay player y el
+ * 24/7 está activo, entra al canal elegido sin esperar al cron de 15 minutos.
+ */
+async function applyMusicRuntime(guild, settings) {
+    const client = guild.client;
+    if (!client?.music) return;
+
+    const player = client.music.players?.get(guild.id);
+    if (player && player.state !== 'DESTROYED') {
+        let moved = false;
+        if (settings.twentyFourSeven && settings.voice247Id
+            && player.voiceId && player.voiceId !== settings.voice247Id) {
+            try {
+                player.setVoiceChannel(settings.voice247Id);
+                moved = true;
+            } catch (err) {
+                console.error('[admin/music] No se pudo mover el player al canal 24/7:', err.message);
+            }
+        }
+        applySettingsToPlayer(player, settings);
+        // setVoiceChannel actualiza el canal de forma asíncrona; applySettings
+        // puede haber visto todavía el canal viejo y haber dejado stay247 en
+        // falso. Como el 24/7 sigue activo, se reafirma tras el movimiento.
+        if (moved && settings.twentyFourSeven) player.data.set('stay247', true);
+        return;
+    }
+
+    if (!settings.twentyFourSeven || !settings.voice247Id) return;
+
+    try {
+        const created = await client.music.createPlayer({
+            guildId: guild.id,
+            voiceId: settings.voice247Id,
+            textId: settings.text247Id || undefined,
+            volume: settings.defaultVolume,
+            deaf: true,
+        });
+        applySettingsToPlayer(created, settings);
+        created.data.set('stay247', true);
+    } catch (err) {
+        console.error('[admin/music] No se pudo entrar al canal 24/7:', err.message);
+    }
+}
+
+async function patchAutorole(guild, patch) {
+    const guildId = guild.id;
     const allowed = ['roleIds', 'botRoleIds'];
     for (const key of Object.keys(patch)) {
         if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
     }
     const [cfg] = await AutoRole.findOrCreate({ where: { guildId }, defaults: { guildId } });
 
+    // Roles borrados se descartan: asignar un rol inexistente falla en cada ingreso.
+    const roleList = (v) => {
+        const a = asSnowflakeArray(v, 20);
+        if (!a) return undefined;
+        return JSON.stringify(a.filter(id => guild.roles.cache.has(id)));
+    };
     const rules = {
-        roleIds: v => { const a = asSnowflakeArray(v, 20); return a ? JSON.stringify(a) : undefined; },
-        botRoleIds: v => { const a = asSnowflakeArray(v, 20); return a ? JSON.stringify(a) : undefined; },
+        roleIds: roleList,
+        botRoleIds: roleList,
     };
 
     const result = applyPatch(cfg, patch, rules);
@@ -573,19 +686,33 @@ async function patchAutorole(guildId, patch) {
     return { data: autoroleJson(cfg) };
 }
 
-async function patchGuild(guildId, patch) {
+async function patchGuild(guild, patch) {
+    const guildId = guild.id;
     const allowed = ['prefix', 'language', 'modLogChannelId', 'memberLogChannelId', 'messageLogChannelId', 'muteRoleId', 'suggestionsChannelId', 'confessionsChannelId', 'birthdayChannelId', 'nsfw'];
     for (const key of Object.keys(patch)) {
         if (!allowed.includes(key)) return { error: `unknown field: ${key}` };
     }
     const [cfg] = await GuildConfig.findOrCreate({ where: { guildId }, defaults: { guildId } });
 
+    const textChannelRule = (v) => {
+        if (v === null || v === '') return null;
+        if (!isSnowflake(v)) return undefined;
+        const ch = guild.channels.cache.get(v);
+        return ch && ch.isTextBased?.() ? v : undefined;
+    };
+    const roleRule = (v) => {
+        if (v === null || v === '') return null;
+        if (!isSnowflake(v)) return undefined;
+        return guild.roles.cache.has(v) ? v : undefined;
+    };
+
     const rules = {
         prefix: v => (v === null ? null : (typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 5 ? v.trim() : undefined)),
         language: enumOf('es', 'en'),
         nsfw: boolRule,
-        modLogChannelId: idOrNull, memberLogChannelId: idOrNull, messageLogChannelId: idOrNull, muteRoleId: idOrNull,
-        suggestionsChannelId: idOrNull, confessionsChannelId: idOrNull, birthdayChannelId: idOrNull,
+        modLogChannelId: textChannelRule, memberLogChannelId: textChannelRule, messageLogChannelId: textChannelRule,
+        muteRoleId: roleRule,
+        suggestionsChannelId: textChannelRule, confessionsChannelId: textChannelRule, birthdayChannelId: textChannelRule,
     };
 
     const result = applyPatch(cfg, patch, rules);
@@ -603,7 +730,7 @@ const THREAD_TYPES = new Set([ChannelType.PublicThread, ChannelType.PrivateThrea
 function channelList(guild) {
     return guild.channels.cache
         .filter(c => !THREAD_TYPES.has(c.type))
-        .map(c => ({ id: c.id, name: c.name, type: c.type, parentId: c.parentId ?? null }))
+        .map(c => ({ id: c.id, name: c.name, type: c.type, parentId: c.parentId ?? null, position: c.rawPosition ?? c.position ?? 0 }))
         .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name))
         .slice(0, 500);
 }
@@ -752,10 +879,10 @@ function startAdminServer(client) {
                     }
 
                     let result;
-                    if (section === 'levels') result = await patchLevels(guildId, patch);
+                    if (section === 'levels') result = await patchLevels(guild, patch);
                     else if (section === 'tickets') result = await patchTickets(guild, patch);
                     else if (section === 'music') result = await patchMusic(guild, patch);
-                    else result = await patchAutorole(guildId, patch);
+                    else result = await patchAutorole(guild, patch);
 
                     if (result?.error) return jsonError(res, 400, 'invalid_patch', result.error, origin);
                     return sendJson(res, 200, result.data, origin);
@@ -775,10 +902,10 @@ function startAdminServer(client) {
                 }
 
                 let result;
-                if (sub === '/guild') result = await patchGuild(guildId, patch);
-                else if (sub === '/automod') result = await patchAutomod(guildId, patch);
+                if (sub === '/guild') result = await patchGuild(guild, patch);
+                else if (sub === '/automod') result = await patchAutomod(guild, patch);
                 else if (sub === '/honeypot') result = await patchHoneypot(guild, patch);
-                else if (sub === '/antinuke') result = await patchAntiNuke(guildId, patch);
+                else if (sub === '/antinuke') result = await patchAntiNuke(guild, patch);
                 else if (sub === '/welcome') result = await patchWelcome(guild, patch);
 
                 if (result?.error) return jsonError(res, 400, 'invalid_patch', result.error, origin);

@@ -5,7 +5,7 @@ export const NO_CHANNEL = '';
 
 // Tipos de canal de Discord usados en el panel.
 export const CHANNEL_TYPES = {
-  text: [0, 5, 15], // GuildText, GuildAnnouncement, GuildForum
+  text: [0, 5], // GuildText, GuildAnnouncement (los foros no aceptan mensajes directos)
   voice: [2, 13], // GuildVoice, GuildStageVoice
   category: [4], // GuildCategory
 } as const;

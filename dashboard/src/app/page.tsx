@@ -70,11 +70,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 
           <figure className="portrait">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/danica.jpg" alt="Danica, la guardiana de Deyra" fetchPriority="high" />
-            <figcaption>
-              <span className="portrait-name">Danica</span>
-              <span className="portrait-role">guardiana del orden</span>
-            </figcaption>
+            <img src="/danica.jpg" alt="Danica" fetchPriority="high" />
           </figure>
         </section>
 

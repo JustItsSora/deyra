@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { getAdministeredGuilds } from '@/lib/guilds';
-import { inviteUrl, guildIconUrl } from '@/lib/discord';
+import { inviteUrl, guildIconUrl, userAvatarUrl } from '@/lib/discord';
 import Sidebar, { type SidebarGuild } from '@/components/Sidebar';
 import AccessNotice from '@/components/AccessNotice';
 
@@ -43,7 +43,12 @@ export default async function GuildLayout({ children, params }: LayoutProps) {
 
   return (
     <div className="shell">
-      <Sidebar guilds={sidebarGuilds} currentGuildId={id} userName={session?.username ?? 'tú'} />
+      <Sidebar
+        guilds={sidebarGuilds}
+        currentGuildId={id}
+        userName={session?.username ?? 'tú'}
+        userAvatarUrl={session ? userAvatarUrl({ id: session.sub, avatar: session.avatar }) : null}
+      />
       {children}
     </div>
   );

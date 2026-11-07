@@ -98,6 +98,14 @@ export function guildIconUrl(guild: Pick<DiscordGuild, 'id' | 'icon'>, size: 64 
   return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=${size}`;
 }
 
+export function userAvatarUrl(user: Pick<DiscordUser, 'id' | 'avatar'>, size: 64 | 128 = 64): string {
+  if (user.avatar) {
+    return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=${size}`;
+  }
+  const idx = Number((BigInt(user.id) >> 22n) % 6n);
+  return `https://cdn.discordapp.com/embed/avatars/${idx}.png`;
+}
+
 /** Invite estándar del bot (scope bot + applications.commands, permisos de administrador). */
 export function inviteUrl(guildId?: string): string | null {
   const clientId = process.env.DISCORD_CLIENT_ID;

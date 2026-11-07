@@ -23,6 +23,7 @@ type SidebarProps = {
   guilds: SidebarGuild[];
   currentGuildId: string;
   userName: string;
+  userAvatarUrl?: string | null;
 };
 
 const NAV_ITEMS = [
@@ -39,7 +40,7 @@ const NAV_ITEMS = [
   { href: '/registros', label: 'Registros', icon: ScrollText },
 ];
 
-export default function Sidebar({ guilds, currentGuildId, userName }: SidebarProps) {
+export default function Sidebar({ guilds, currentGuildId, userName, userAvatarUrl }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -135,7 +136,12 @@ export default function Sidebar({ guilds, currentGuildId, userName }: SidebarPro
       </nav>
 
       <div className="side-user">
-        <UserRound size={16} aria-hidden="true" />
+        {userAvatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={userAvatarUrl} alt="" width={20} height={20} className="side-user-avatar" />
+        ) : (
+          <UserRound size={16} aria-hidden="true" />
+        )}
         <span className="small" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName}</span>
       </div>
     </aside>

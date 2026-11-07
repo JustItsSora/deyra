@@ -51,7 +51,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 
         <section className="hero">
           <div>
-            <span className="eyebrow">548 comandos híbridos</span>
+            <span className="eyebrow">548 comandos, slash y prefijo</span>
             <h1>Tu servidor, <em>en orden</em> antes de que arda.</h1>
             <p className="lede">
               Deyra modera, filtra y responde mientras tú vives: automod, honeypot,
@@ -75,7 +75,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         </section>
 
         <div className="spec-strip" aria-label="Ficha técnica">
-          <span><b>548</b> comandos híbridos</span>
+          <span><b>548</b> comandos</span>
           <span><b>31</b> tablas de datos</span>
           <span><b>7</b> protecciones automáticas</span>
           <span><b>0 €</b> para siempre</span>
@@ -84,7 +84,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         <section className="ledger" id="servicio" aria-label="Lo que hace">
           <span className="eyebrow">El servicio</span>
           <h2>Lo que hace, sin letra pequeña.</h2>
-          <p className="sub">Seis líneas corresponden a sistemas reales corriendo hoy. Lo que lees es exactamente lo que hace; nada de relleno de marketing.</p>
+          <p className="sub">Cada línea es un sistema que ya está corriendo hoy. Lo que lees es exactamente lo que hace: ni roadmap ni relleno.</p>
 
           <div className="ledger-rows">
             <a className="row" href="#panel">
@@ -143,22 +143,32 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
               <span className="plate-title">Deyra · Panel</span>
             </div>
             <div className="plate-body">
-              <div className="prow"><span><b>Automod</b> · invites, links con allowlist</span><span className="ok">Activo</span></div>
-              <div className="prow"><span><b>Honeypot</b> · #free-gifts · rotación 6h</span><span className="ok">Activo</span></div>
+              <div className="prow"><span><b>Automod</b> · invites, links con allowlist</span><span className="sw" aria-hidden="true"><i /></span></div>
+              <div className="prow"><span><b>Honeypot</b> · #free-gifts · rotación automática</span><span className="ok">Activo</span></div>
               <div className="prow"><span><b>Anti-nuke</b> · umbral 3 / 10 min</span><span className="ok">Activo</span></div>
               <div className="prow"><span><b>Tickets</b> · categoría Soporte</span><span className="warn">2 abiertos</span></div>
               <div className="prow"><span><b>Registro</b> · #modlog · mensajes y miembros</span><span className="ok">Activo</span></div>
+              <div className="plate-foot"><span className="ok">Guardado</span><span>· el bot ya aplica los cambios</span></div>
             </div>
           </div>
         </section>
 
         <section className="oath" id="garantia" aria-label="Garantía">
-          <div>
+          <div className="oath-head">
             <span className="eyebrow">Garantía</span>
             <p className="big">No toca tu cuenta.<br />Toca <em>tu servidor.</em></p>
-            <div className="rule">
+          </div>
+          <div className="oath-clauses">
+            <div className="clause">
+              <span className="n" aria-hidden="true">I</span>
               <p><b>El panel nunca ve tus mensajes ni tus DMs.</b> Ve la configuración del servidor y tu permiso para administrarlo, nada más.</p>
+            </div>
+            <div className="clause">
+              <span className="n" aria-hidden="true">II</span>
               <p><b>Nada viaja a terceros.</b> La base de datos vive donde corre el bot, y el bot valida cada cambio como un comando real.</p>
+            </div>
+            <div className="clause">
+              <span className="n" aria-hidden="true">III</span>
               <p><b>Discord es de Discord.</b> Deyra no es un servicio de Discord ni está afiliada con Discord Inc. Es un bot independiente que convive con él.</p>
             </div>
           </div>
@@ -166,7 +176,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 
         <section className="faq" id="preguntas" aria-label="Preguntas">
           <span className="eyebrow">Preguntas</span>
-          <h2>Sin letra pequeña.</h2>
+          <h2>Antes de añadirla.</h2>
           <details>
             <summary>¿Cuánto cuesta?<ArrowRight size={16} className="chev" aria-hidden="true" /></summary>
             <p>Nada. Es gratis, y tus datos viven en el servidor del bot.</p>
@@ -191,7 +201,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
           <div className="closing-copy">
             <span className="eyebrow-ink">Cierre</span>
             <h2>Sellar tu servidor.</h2>
-            <p>Añádela y en treinta segundos el orden vuelve a reinar.</p>
+            <p>Añádela y el orden vuelve a reinar.</p>
             <a className="btn-ink" href={ctaHref}>Añadir a Discord<ArrowRight size={17} aria-hidden="true" /></a>
           </div>
           <div className="closing-aside">

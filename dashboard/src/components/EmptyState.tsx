@@ -14,7 +14,7 @@ export default function EmptyState({ icon: Icon, title, children, action, portra
     <div className="empty">
       {portrait ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img className="empty-portrait" src="/logo.png" alt="" width={96} height={116} />
+        <img className="empty-portrait" src="/danica.jpg" alt="" width={72} height={72} />
       ) : (
         <Icon className="icon" strokeWidth={1.5} aria-hidden="true" />
       )}

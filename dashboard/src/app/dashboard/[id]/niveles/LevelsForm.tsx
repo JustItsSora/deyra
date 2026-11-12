@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, Info } from 'lucide-react';
+import { AlertCircle, Plus, Trash2, Info } from 'lucide-react';
 import { useSectionForm } from '@/lib/useSectionForm';
 import SaveBar from '@/components/SaveBar';
 import Toast from '@/components/Toast';
@@ -118,13 +118,13 @@ export default function LevelsForm({
       <section className="panel" aria-label="Ganancia de XP">
         <div className="panel-head"><div><h2 className="panel-title">Ganancia de XP</h2>
           <p className="panel-desc">Cuánto XP da cada mensaje y cada cuánto.</p></div></div>
-        <div className="panel-body panel-muted" style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+        <div className={`panel-body${!state.enabled ? ' panel-muted' : ''}`} style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
           <NumberInput id="xpMin" label="XP mín. por mensaje" min={1} max={200} value={state.xpPerMessageMin} onChange={(v) => update('xpPerMessageMin', v)} />
           <NumberInput id="xpMax" label="XP máx. por mensaje" min={1} max={200} value={state.xpPerMessageMax} onChange={(v) => update('xpPerMessageMax', v)} />
           <NumberInput id="xpCooldown" label="Cooldown (segundos)" min={0} max={3600} value={state.xpCooldownSeconds} onChange={(v) => update('xpCooldownSeconds', v)} />
         </div>
         {state.xpPerMessageMin > state.xpPerMessageMax && (
-          <p className="error-text mt" role="alert">El XP mínimo no puede ser mayor que el máximo.</p>
+          <p className="error-text panel-note" role="alert"><AlertCircle size={15} aria-hidden="true" />El XP mínimo no puede ser mayor que el máximo.</p>
         )}
       </section>
 

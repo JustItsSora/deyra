@@ -22,7 +22,7 @@ export default function SaveBar({ visible, saving, onSave, onDiscard }: SaveBarP
         </button>
         <button type="button" className="btn btn-primary btn-sm" onClick={onSave} disabled={saving}>
           {saving ? <Loader2 size={15} className="spin" aria-hidden="true" /> : <Save size={15} aria-hidden="true" />}
-          {saving ? 'Guardando…' : 'Guardar'}
+          {saving ? 'Sellando…' : 'Sellar cambios'}
         </button>
       </div>
     </div>

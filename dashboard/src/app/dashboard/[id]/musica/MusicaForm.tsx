@@ -1,6 +1,6 @@
 'use client';
 
-import { Info } from 'lucide-react';
+import { AlertCircle, Info } from 'lucide-react';
 import { useSectionForm } from '@/lib/useSectionForm';
 import SaveBar from '@/components/SaveBar';
 import Toast from '@/components/Toast';
@@ -166,19 +166,19 @@ export default function MusicaForm({
           )}
         </div>
         {voice247Missing && (
-          <p className="error-text mt" role="alert">Elige un canal de voz para el modo 24/7. Sin canal, el bot no tiene dónde quedarse.</p>
+          <p className="error-text panel-note" role="alert"><AlertCircle size={15} aria-hidden="true" />Elige un canal de voz para el modo 24/7. Sin canal, el bot no tiene dónde quedarse.</p>
         )}
       </section>
 
       <section className="panel" aria-label="Límites">
         <div className="panel-head"><div><h2 className="panel-title">Límites y tiempos</h2>
-          <p className="panel-desc"></p></div></div>
+          <p className="panel-desc">Inactividad antes de abandonar el canal y tope de pistas en cola.</p></div></div>
         <div className="panel-body" style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
           <NumberInput id="leaveEmpty" label="Salir si vacío (seg)" min={0} max={3600} value={msToSeconds(state.leaveOnEmptyMs)} onChange={(v) => update('leaveOnEmptyMs', secondsToMs(v))} />
           <NumberInput id="leaveEnd" label="Salir tras la cola (seg)" min={0} max={3600} value={msToSeconds(state.leaveOnEndMs)} onChange={(v) => update('leaveOnEndMs', secondsToMs(v))} />
           <NumberInput id="maxQueue" label="Máx. canciones en cola" min={1} max={5000} value={state.maxQueueSize} onChange={(v) => update('maxQueueSize', v)} />
         </div>
-        <p className="hint" style={{ marginTop: 8 }}>0 segundos = nunca se va solo de la cola o del canal.</p>
+        <p className="hint panel-note">0 segundos = nunca se va solo de la cola o del canal.</p>
       </section>
 
       <div className="callout mt" role="note">

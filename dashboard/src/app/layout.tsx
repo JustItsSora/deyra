@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Manrope, Marcellus } from 'next/font/google';
 import Fx from '@/components/Fx';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
+const marcellus = Marcellus({ subsets: ['latin'], weight: '400', variable: '--font-marcellus', display: 'swap' });
 
 // Tema único oscuro. La clave 'deyra-theme' se mantiene en localStorage:
 // los valores antiguos (jade, ámbar, etc.) se normalizan a 'dark' para
@@ -16,14 +17,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#050507',
+  themeColor: '#01110a',
   width: 'device-width',
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={inter.variable} data-theme="dark">
+    <html lang="es" className={`${manrope.variable} ${marcellus.variable}`} data-theme="dark">
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

@@ -15,6 +15,7 @@ type ListboxProps = {
   options: ListboxOption[];
   onChange: (value: string) => void;
   ariaLabel: string;
+  id?: string;
   placeholder?: string;
   disabled?: boolean;
   emptyText?: string;
@@ -30,6 +31,7 @@ export default function Listbox({
   options,
   onChange,
   ariaLabel,
+  id,
   placeholder = 'Selecciona…',
   disabled,
   emptyText = 'Sin opciones disponibles',
@@ -128,6 +130,7 @@ export default function Listbox({
   return (
     <div className="listbox" ref={rootRef}>
       <button
+        id={id}
         type="button"
         className="listbox-trigger"
         aria-haspopup="listbox"

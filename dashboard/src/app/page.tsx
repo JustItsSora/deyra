@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Plus, Ban, ShieldCheck, Radar, ShieldAlert, Ticket, TrendingUp } from 'lucide-react';
+import { ArrowRight, Plus, ShieldAlert } from 'lucide-react';
 import { inviteUrl } from '@/lib/discord';
 import SoundToggle from '@/components/SoundToggle';
 
@@ -11,12 +11,12 @@ const AUTH_MESSAGES: Record<string, string> = {
 };
 
 const FEATURES = [
-  { icon: Ban, name: 'Moderación con memoria', line: 'Ban, kick, warn, lockdown y purge con registro en el canal que tú elijas.', cmd: '/ban' },
-  { icon: ShieldCheck, name: 'Automod que entiende el contexto', line: 'Invites, enlaces con lista blanca, spam por frecuencia o duplicado, menciones con roles y @everyone, mayúsculas y palabras con límites de palabra.', cmd: '/automod' },
-  { icon: Radar, name: 'Honeypot con trampa giratoria', line: 'Un canal señuelo con el nombre cambiando solo: el bot de raid que escribe ahí no vuelve.', cmd: '/honeypot' },
-  { icon: ShieldAlert, name: 'Anti-nuke sobre el audit log', line: 'Borrados masivos de canales, roles o baneos: detecta la ráfaga y la corta antes de que arrase.', cmd: '/antinuke' },
-  { icon: Ticket, name: 'Tickets de verdad', line: 'Panel con categorías, equipo de soporte y cierre con transcripción al archivar.', cmd: '/ticket' },
-  { icon: TrendingUp, name: 'Niveles que sirven', line: 'XP por participar y recompensas por rol, sin grind falso ni ranking inflado.', cmd: '/level' },
+  { n: '01', name: 'Moderación con registro', line: 'Ban, kick, warn, lockdown y purge con registro en el canal que elijas.', cmd: '/ban' },
+  { n: '02', name: 'Automod contextual', line: 'Invites, enlaces con lista blanca, spam por frecuencia o duplicado, menciones, mayúsculas y palabras por límite de palabra.', cmd: '/automod' },
+  { n: '03', name: 'Honeypot rotativo', line: 'Un canal señuelo cuyo nombre rota entre intervalos de 20 minutos a 7 días: la cuenta de raid que publica ahí queda sancionada al instante.', cmd: '/honeypot' },
+  { n: '04', name: 'Anti-nuke sobre audit log', line: 'Vigila borrados de canales y roles, baneos, webhooks y permisos en ventanas de 1 a 120 minutos. Responde con registro, derank o ban.', cmd: '/antinuke' },
+  { n: '05', name: 'Tickets con transcripción', line: 'Panel con hasta 4 categorías, roles de soporte y archivo del historial al cerrar.', cmd: '/ticket' },
+  { n: '06', name: 'Niveles y roles por rango', line: 'XP por mensaje con cooldown configurable, canales excluidos y entrega automática de roles al subir.', cmd: '/level' },
 ];
 
 export default async function LandingPage({ searchParams }: { searchParams: Promise<{ auth?: string }> }) {
@@ -60,45 +60,46 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 
         <section className="hero">
           <div className="hero-copy">
-            <span className="kicker">548 comandos, slash y prefijo</span>
+            <span className="kicker">548 comandos · slash y prefijo</span>
             <h1>Tu servidor, <em>en orden</em> antes de que arda.</h1>
             <p className="lede">
-              Deyra modera, filtra y responde mientras tú vives: automod, honeypot,
-              anti-nuke, tickets, niveles y música. Sin memorizar comandos,{' '}
-              <b>sin rituales, sin letra pequeña</b>.
+              Bot de Discord en español con panel web para configurar automod, honeypot,
+              anti-nuke, tickets, niveles, autorole, bienvenidas, música y registros{' '}
+              <b>con tu cuenta de Discord, sin memorizar comandos</b>.
             </p>
             <div className="cta-row">
               <a className="btn btn-primary" href={ctaHref}>Añadir a Discord</a>
-              <a className="btn btn-ghost" href="/api/auth/login">Iniciar sesión</a>
+              <Link className="btn btn-ghost" href="/dashboard">Abrir el panel</Link>
             </div>
             <p className="micro">
-              <span>Instalación en 30 segundos</span>
-              <span>Permisos mínimos</span>
+              <span>OAuth oficial de Discord</span>
+              <span>Solo servidores que administras</span>
             </p>
           </div>
 
           <figure className="portrait">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/danica.jpg" alt="Danica" fetchPriority="high" />
+            <img src="/danica.jpg" alt="Danica, guardiana del orden de Deyra" width={300} height={300} fetchPriority="high" />
+            <span className="portrait-seal" aria-hidden="true">D</span>
           </figure>
         </section>
 
         <div className="spec-strip" aria-label="Ficha técnica">
           <span><b>548</b> comandos</span>
-          <span><b>31</b> tablas de datos</span>
-          <span><b>7</b> protecciones automáticas</span>
-          <span><b>0 €</b> para siempre</span>
+          <span><b>10</b> módulos en el panel</span>
+          <span><b>7</b> filtros de automod</span>
+          <span><b>3</b> respuestas anti-nuke</span>
         </div>
 
         <section className="section" id="servicio" aria-label="Lo que hace">
           <span className="kicker">El servicio</span>
-          <h2 className="section-title">Lo que hace, sin letra pequeña.</h2>
-          <p className="section-sub">Cada tarjeta es un sistema que ya está corriendo hoy. Lo que lees es exactamente lo que hace: ni roadmap ni relleno.</p>
+          <h2 className="section-title">Seis sistemas activos desde el primer minuto.</h2>
+          <p className="section-sub">Cada fila corresponde a un módulo real del bot y a una sección del panel.</p>
 
           <div className="feature-grid">
-            {FEATURES.map(({ icon: Icon, name, line, cmd }) => (
-              <a key={name} className="feature-card" href="#panel">
-                <Icon className="feature-icon" size={22} aria-hidden="true" />
+            {FEATURES.map(({ n, name, line, cmd }) => (
+              <a key={n} className="feature-card" href="#panel">
+                <span className="feature-n" aria-hidden="true">{n}</span>
                 <span className="feature-name">{name}</span>
                 <span className="feature-desc">{line}</span>
                 <code className="feature-cmd">{cmd}</code>
@@ -109,19 +110,18 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 
         <section className="section" id="panel" aria-label="El panel">
           <span className="kicker">El panel</span>
-          <h2 className="section-title">El bot, por dentro y sin disfraces.</h2>
+          <h2 className="section-title">La misma configuración que leen los comandos.</h2>
           <p className="section-sub">
-            La misma configuración que leen los comandos, en vivo. Cuando guardas en el
-            panel, el bot ya lo está haciendo: respuesta instantánea, sin reinicios ni
-            copiar IDs.
+            Cuando sellas un cambio en la web, el bot lo aplica sobre la marcha: sin
+            reinicios, sin sintaxis de flags y sin pegar IDs de canales o roles a mano.
           </p>
           <ul className="panel-list">
-            <li>Solo quienes pueden administrar el servidor lo ven.</li>
-            <li>Cada guardado pasa la misma validación que un comando real.</li>
-            <li>Tus datos viven en tu instancia del bot, no en un tercero.</li>
+            <li><span className="n" aria-hidden="true">01</span><span><b>Acceso por permisos reales.</b> Solo aparecen los servidores donde tienes Administrador o Gestionar servidor y Deyra está dentro.</span></li>
+            <li><span className="n" aria-hidden="true">02</span><span><b>Validación idéntica al bot.</b> Rangos, listas blancas y canales pasan por el mismo esquema que los comandos.</span></li>
+            <li><span className="n" aria-hidden="true">03</span><span><b>Selectores en vivo.</b> Lee los canales de texto, voz, categorías y roles actuales del servidor en cada carga.</span></li>
           </ul>
-          <Link className="text-link panel-cta" href="/dashboard">
-            Abrir el panel <ArrowRight size={16} aria-hidden="true" />
+          <Link className="btn btn-ghost panel-cta" href="/dashboard">
+            Ver archivo del panel <ArrowRight size={15} aria-hidden="true" />
           </Link>
         </section>
 
@@ -173,25 +173,25 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
           <div className="closing-copy">
             <span className="kicker">Empezar</span>
             <h2>Pon tu servidor en orden.</h2>
-            <p>Gratis, sin tarjeta. Se instala en menos de un minuto y se configura desde el panel.</p>
+            <p>Invita a Deyra con permisos de moderación y abre el panel con tu cuenta de Discord para sellar la configuración inicial.</p>
             <a className="btn btn-primary" href={ctaHref}>Añadir a Discord<ArrowRight size={15} aria-hidden="true" /></a>
           </div>
           <ul className="closing-list">
             <li>
-              <ShieldCheck size={20} aria-hidden="true" />
-              <span><span className="m">Automod</span><br /><span className="d">Filtra spam, enlaces y menciones.</span></span>
+              <span className="n" aria-hidden="true">01</span>
+              <span><span className="m">Automod</span><br /><span className="d">7 filtros con lista blanca de dominios y escalada a 30 días.</span></span>
             </li>
             <li>
-              <Radar size={20} aria-hidden="true" />
-              <span><span className="m">Honeypot</span><br /><span className="d">Atrae raids y expulsa intrusos.</span></span>
+              <span className="n" aria-hidden="true">02</span>
+              <span><span className="m">Honeypot</span><br /><span className="d">Canal señuelo con rotación automática y sanción inmediata.</span></span>
             </li>
             <li>
-              <ShieldAlert size={20} aria-hidden="true" />
-              <span><span className="m">Anti-nuke</span><br /><span className="d">Bloquea acciones masivas.</span></span>
+              <span className="n" aria-hidden="true">03</span>
+              <span><span className="m">Anti-nuke</span><br /><span className="d">Umbral de 1 a 20 acciones sobre el audit log.</span></span>
             </li>
             <li>
-              <Ticket size={20} aria-hidden="true" />
-              <span><span className="m">Tickets</span><br /><span className="d">Atención en privado para tu gente.</span></span>
+              <span className="n" aria-hidden="true">04</span>
+              <span><span className="m">Tickets y registros</span><br /><span className="d">Soporte por categorías y canales de log separados por tipo.</span></span>
             </li>
           </ul>
         </div>

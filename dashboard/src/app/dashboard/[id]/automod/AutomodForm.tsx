@@ -109,7 +109,7 @@ export default function AutomodForm({
       <section className="panel" aria-label="Protecciones">
         <div className="panel-head"><div><h2 className="panel-title">Protecciones</h2>
           <p className="panel-desc">Filtros aplicados a mensajes y ediciones.</p></div></div>
-        <div className="panel-body panel-muted">
+        <div className={`panel-body${!state.enabled ? ' panel-muted' : ''}`}>
           {toggleRow('antiInvite', 'Anti-invitaciones', 'Elimina enlaces de discord.gg, discord.com/invite, dsc.gg e invite.gg.')}
           {toggleRow('antiLink', 'Anti-enlaces', 'Elimina enlaces HTTP/HTTPS salvo los dominios de tu lista blanca.')}
           {toggleRow('antiSpam', 'Anti-spam', 'Ráfagas de mensajes o mismo contenido repetido. Ver ajustes finos.')}
@@ -169,18 +169,17 @@ export default function AutomodForm({
           <div className="cols cols-2">
             <div className="field">
               <label className="label" htmlFor="punishmentAction">Cuando hay una infracción</label>
-              <Listbox value={state.punishmentAction} options={ACTION_OPTIONS} onChange={(v) => update('punishmentAction', v as AutomodSection['punishmentAction'])} ariaLabel="Acción al detectar una infracción" />
+              <Listbox id="punishmentAction" value={state.punishmentAction} options={ACTION_OPTIONS} onChange={(v) => update('punishmentAction', v as AutomodSection['punishmentAction'])} ariaLabel="Acción al detectar una infracción" />
             </div>
             <div className="field">
               <label className="label" htmlFor="escalationAction">Escalada automática (30 días)</label>
-              <Listbox value={state.escalationAction} options={ESCALATION_OPTIONS} onChange={(v) => update('escalationAction', v as AutomodSection['escalationAction'])} ariaLabel="Acción de escalada" />
+              <Listbox id="escalationAction" value={state.escalationAction} options={ESCALATION_OPTIONS} onChange={(v) => update('escalationAction', v as AutomodSection['escalationAction'])} ariaLabel="Acción de escalada" />
             </div>
           </div>
           {state.escalationAction !== 'off' && (
-            <div className="field mt">
-              <label className="label" htmlFor="escalationThreshold">Infracciones que disparan la escalada</label>
-              <NumberInput id="escalationThreshold" label="Infracciones" min={1} max={100} value={state.escalationThreshold} onChange={(v) => update('escalationThreshold', v)} />
-              <p className="hint">Cada infracción queda registrada en /warnings. Al llegar al umbral en 30 días, la sanción sube sola.</p>
+            <div className="mt">
+              <NumberInput id="escalationThreshold" label="Infracciones que disparan la escalada" min={1} max={100} value={state.escalationThreshold} onChange={(v) => update('escalationThreshold', v)} />
+              <p className="hint" style={{ marginTop: 8 }}>Cada infracción queda registrada en /warnings. Al llegar al umbral en 30 días, la sanción sube sola.</p>
             </div>
           )}
         </div>

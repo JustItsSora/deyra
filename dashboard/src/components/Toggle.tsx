@@ -1,6 +1,6 @@
 'use client';
 
-import { play, burst } from '@/lib/sound';
+import { play } from '@/lib/sound';
 
 type ToggleProps = {
   checked: boolean;
@@ -20,13 +20,9 @@ export default function Toggle({ checked, onChange, label, disabled, loading }: 
       aria-busy={loading || undefined}
       disabled={disabled}
       className={`switch${loading ? ' loading' : ''}`}
-      onClick={(e) => {
+      onClick={() => {
         const next = !checked;
         play(next ? 'on' : 'off');
-        if (next) {
-          const r = e.currentTarget.getBoundingClientRect();
-          burst(r.left + r.width * 0.72, r.top + r.height / 2);
-        }
         onChange(next);
       }}
     />

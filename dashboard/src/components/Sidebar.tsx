@@ -65,6 +65,7 @@ export default function Sidebar({ guilds, currentGuildId, userName, userAvatarUr
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [avatarBroken, setAvatarBroken] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const current = guilds.find((g) => g.id === currentGuildId) ?? guilds[0];
@@ -166,9 +167,9 @@ export default function Sidebar({ guilds, currentGuildId, userName, userAvatarUr
 
       <div className="side-foot">
         <div className="side-user">
-          {userAvatarUrl ? (
+          {userAvatarUrl && !avatarBroken ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={userAvatarUrl} alt="" width={24} height={24} className="side-user-avatar" />
+            <img src={userAvatarUrl} alt="" width={24} height={24} className="side-user-avatar" onError={() => setAvatarBroken(true)} />
           ) : (
             <UserRound size={18} aria-hidden="true" />
           )}
